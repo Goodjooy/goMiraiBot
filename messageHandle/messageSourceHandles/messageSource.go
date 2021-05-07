@@ -2,8 +2,10 @@ package messagesourcehandles
 
 import (
 	"errors"
+	"fmt"
 	"goMiraiQQBot/constdata"
 	"goMiraiQQBot/request/structs/message"
+	"log"
 )
 
 type MessageSource interface {
@@ -13,7 +15,7 @@ type MessageSource interface {
 	GetMetaInformation() interface{}
 }
 
-var sourceMap map[constdata.MessageType]func(map[string]interface{}) MessageSource
+var sourceMap map[constdata.MessageType]func(map[string]interface{}) MessageSource=make(map[constdata.MessageType]func(map[string]interface{}) MessageSource)
 
 func InitMessageSourceHandle() {
 	sourceMap[constdata.GroupMessage] = FromMessageRecive
@@ -21,13 +23,25 @@ func InitMessageSourceHandle() {
 
 func FromMessageMap(data message.MessageMapRespond) (MessageSource, error) {
 	if data.Code != constdata.Normal {
-		return nil, errors.New("Failure Operate ErrorCode : " + string(data.Code) + "Info: " + data.ErrorMessage)
+		return nil, errors.New("Failure Operate ErrorCode : " + fmt.Sprint(data.Code) + "Info: " + data.ErrorMessage)
 	}
-	metaData := data.Data.(map[string]interface{})
+
+	defer handingMessagePanicReover()
+
+	metaData := data.Data
 	var messageType = constdata.MessageType(metaData["type"].(string))
 	var handle = sourceMap[messageType]
 
 	var messageSource = handle(metaData["sender"].(map[string]interface{}))
 
 	return messageSource, nil
+}
+
+func handingMessagePanicReover() {
+	err := recover()
+	if err == nil {
+		log.Print("Handing message well")
+	} else {
+		log.Fatal(err)
+	}
 }

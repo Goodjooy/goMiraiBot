@@ -5,14 +5,14 @@ import (
 )
 
 type GroupMessage struct {
-	userId   uint64
-	userName string
+	UserId   uint64
+	UserName string
 
-	groupId   uint64
-	groupName string
+	GroupId   uint64
+	GroupName string
 
-	senderPermission constdata.PermissionLevel
-	botPermission    constdata.PermissionLevel
+	SenderPermission constdata.PermissionLevel
+	BotPermission    constdata.PermissionLevel
 }
 
 type GroupMessageSourceHandle struct {
@@ -23,12 +23,12 @@ func FromMessageRecive(sender map[string]interface{}) MessageSource {
 	var group = sender["group"].(map[string]interface{})
 
 	data := GroupMessage{
-		userId:           sender["id"].(uint64),
-		userName:         sender["memberName"].(string),
-		senderPermission: constdata.PermissionLevel(sender["permission"].(string)),
-		groupId:          uint64(group["id"].(float64)),
-		groupName:        group["name"].(string),
-		botPermission:    constdata.PermissionLevel(group["permission"].(string)),
+		UserId:           uint64(sender["id"].(float64)),
+		UserName:         sender["memberName"].(string),
+		SenderPermission: constdata.PermissionLevel(sender["permission"].(string)),
+		GroupId:          uint64(group["id"].(float64)),
+		GroupName:        group["name"].(string),
+		BotPermission:    constdata.PermissionLevel(group["permission"].(string)),
 	}
 	return GroupMessageSourceHandle{
 		data: data,

@@ -31,7 +31,7 @@ func FromMessageRespondData(data message.MessageMapRespond) (Message, error) {
 	if err != nil {
 		return Message{}, err
 	}
-	dataMessage := data.Data.(map[string]interface{})
+	dataMessage := data.Data
 	messageChains := dataMessage["messageChain"].([]interface{})
 
 	//headMessage
@@ -52,6 +52,7 @@ func FromMessageRespondData(data message.MessageMapRespond) (Message, error) {
 
 		metaInfo.MessageType = constdata.MessageDataType(messageChainMetaData["type"].(string))
 
+		metaInfo.Data=make(map[string]interface{})
 		for k, d := range messageChainMetaData {
 			if k == "type" {
 				continue

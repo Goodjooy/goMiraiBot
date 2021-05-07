@@ -8,7 +8,7 @@ type MessageMapRespond struct {
 	Code         constdata.RespondStatus `json:"code"`
 	ErrorMessage string                `json:"errorMessage"`
 
-	Data interface{} `json:"data"`
+	Data map[string]interface{} `json:"data"`
 }
 type MessageRespond struct {
 	Code         constdata.RespondStatus `json:"code"`

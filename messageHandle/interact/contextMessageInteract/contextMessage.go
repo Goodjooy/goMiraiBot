@@ -1,6 +1,9 @@
 package contextmessageinteract
 
-import "goMiraiQQBot/messageHandle/structs"
+import (
+	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
+	"goMiraiQQBot/messageHandle/structs"
+)
 
 /*
 ContextMessageInteract 有上下文关系的信息交互部分,
@@ -11,9 +14,9 @@ type ContextMessageInteract interface {
 	GetInitCommand()string
 
 	//InitMessage 上下文交互创建时使用,初始化数据，响应消息
-	InitMessage(msg structs.Message,redChan chan structs.MessageRespond)ContextMessageInteract
+	InitMessage(msg structs.Message,redChan chan messagetargets.MessageTarget)ContextMessageInteract
 	//NextMessage 向上下文提交信息
-	NextMessage(msg structs.Message,redChan chan structs.MessageRespond)
+	NextMessage(msg structs.Message,redChan chan messagetargets.MessageTarget)
 	
 	//IsDone 判断该上下文是否已经完成
 	IsDone()bool

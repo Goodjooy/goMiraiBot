@@ -4,6 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"goMiraiQQBot/constdata"
+	"goMiraiQQBot/messageHandle/interact"
+	messagesourcehandles "goMiraiQQBot/messageHandle/messageSourceHandles"
+	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
+	s "goMiraiQQBot/messageHandle/structs"
 	"goMiraiQQBot/request"
 	"goMiraiQQBot/request/structs"
 	"goMiraiQQBot/request/structs/message"
@@ -11,7 +15,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -21,9 +25,12 @@ const authKey = "INITKEYy2euAf0E"
 
 var addr = flag.String("addr", "0.0.0.0:8080", "http service address")
 
-var messagechannal=make(chan message.MessageData, 128)
+var messagechannal = make(chan message.MessageData, 128)
+
+var cmdPattern = regexp.MustCompile(`^#\s*(\S+)\s*`)
 
 func main() {
+
 	flag.Parse()
 	log.SetFlags(1)
 
@@ -60,7 +67,6 @@ func main() {
 	}
 	log.Println("Verify QQ")
 
-
 	//ws url
 	u := url.URL{Scheme: "ws", Host: *addr, Path: "/message", RawQuery: fmt.Sprintf("sessionKey=%s", resInterface.Session)}
 	socket, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
@@ -72,6 +78,12 @@ func main() {
 
 	defer socket.Close()
 
+	resMessage := make(chan messagetargets.MessageTarget)
+	reqMessage := make(chan s.Message)
+
+	messagesourcehandles.InitMessageSourceHandle()
+	interact.InitInteractHandle(reqMessage, resMessage)
+
 	done := make(chan struct{})
 	//load message
 
@@ -79,63 +91,36 @@ func main() {
 		defer close(done)
 
 		for {
-			var f message.MessageData
-			err := socket.ReadJSON(&f)
+			var f message.MessageMapRespond
+			err := socket.ReadJSON(&f.Data)
 			if err != nil {
 				log.Fatal("readMessageFatal: ", err)
 				return
 			}
-
-			if f.Type == constdata.GroupMessage {
-				go func() {
-					chain := f.MessageChain
-					messageChain := chain[1]
-					var code string = ""
-					if messageChain["type"].(string) == string(constdata.Plain) {
-						text := messageChain["text"].(string)
-
-						if !strings.HasPrefix(text, "#") {
-							return
-						}
-						code = strings.Replace(text, "#", "", 1)
-					} else if messageChain["type"].(string) == string(constdata.Image) {
-
-						code = fmt.Sprintf("收到图片")
-					} else {
-						return
-					}
-
-					msg := message.GroupMessageRequest{
-						Session: resInterface.Session,
-						Target:  f.Sender.GroupIn.Id,
-						Clain: []request.H{
-							{
-								"type": string(constdata.Plain),
-								"text": fmt.Sprintf("收到信息！\n 来自群[%v(%v)]\n发送者[%v(%v)]\n`%v`",
-									f.Sender.GroupIn.Name, f.Sender.GroupIn.Id,
-									f.Sender.MemberName, f.Sender.Id, code),
-							}},
-					}
-					if messageChain["type"].(string) == string(constdata.Image) {
-						msg.Clain = append(msg.Clain, request.H{
-							"type": string(constdata.Image),
-							"url":  messageChain["url"].(string),
-						})
-					}
-					var res message.MessageSendRespond
-					err = request.PostWithTargetRespond("/sendGroupMessage", msg, &res)
-					if err != nil {
-						log.Fatal(err)
-						return
-					} else {
-						log.Printf("send message success :group[%v(%v)]", f.Sender.GroupIn, f.Sender.GroupIn.Id)
-					}
-				}()
-
+			msg, err := s.FromMessageRespondData(f)
+			if err != nil {
+				log.Fatal(err)
+				continue
 			}
 
+			reqMessage <- msg
+			log.Print("send Message To Handle")
 		}
+	}()
 
+	go func() {
+		for {
+			select {
+			case data, ok := (<-resMessage):
+				if ok {
+					_, err := request.Post(string(data.GetTargetPort()), data.GetSendContain(resInterface.Session))
+					if err != nil {
+						log.Fatalf("Send Message Fail %v", err)
+						continue
+					}
+				}
+			}
+		}
 	}()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -154,14 +139,14 @@ func main() {
 						SessionKey: resInterface.Session,
 					}
 					var res structs.VerifyRespond
-			
+
 					err := request.PostWithTargetRespond("/release", releaseSessionBody, &res)
 					if err != nil {
 						log.Fatal(err)
 					}
 					log.Print("exit release session")
 				}()
-				socket.WriteMessage(websocket.TextMessage,websocket.FormatCloseMessage(websocket.CloseNormalClosure,""))				
+				socket.WriteMessage(websocket.TextMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 				return
 			}
 		}
