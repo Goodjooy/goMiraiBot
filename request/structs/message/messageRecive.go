@@ -1,16 +1,24 @@
 package message
 
-import "goMiraiQQBot/request"
+import (
+	"goMiraiQQBot/constdata"
+)
 
+type MessageMapRespond struct {
+	Code         constdata.RespondStatus `json:"code"`
+	ErrorMessage string                `json:"errorMessage"`
+
+	Data interface{} `json:"data"`
+}
 type MessageRespond struct {
-	Code         request.RespondStatus `json:"code"`
+	Code         constdata.RespondStatus `json:"code"`
 	ErrorMessage string                `json:"errorMessage"`
 
 	Data MessageData `json:"data"`
 }
 
 type MessageData struct {
-	Type request.MessageType `json:"type"`
+	Type constdata.MessageType `json:"type"`
 
 	MessageChain []ChainInfo `json:"messageChain"`
 	Sender       Sender       `json:"sender"`
@@ -23,7 +31,7 @@ type Sender struct {
 	MemberName string `json:"memberName"`
 
 
-	Permission request.PermissionLevel `json:"permission"`
+	Permission constdata.PermissionLevel `json:"permission"`
 
 	GroupIn Group `json:"group"`
 }
@@ -32,5 +40,5 @@ type Group struct {
 	Id   uint64 `json:"id"`
 	Name string`json:"name"`
 
-	Permission request.PermissionLevel `json:"permission"`
+	Permission constdata.PermissionLevel `json:"permission"`
 }

@@ -1,6 +1,10 @@
 package message
 
-import "goMiraiQQBot/request"
+import (
+	"goMiraiQQBot/constdata"
+	"goMiraiQQBot/request"
+)
+
 
 type GroupMessageRequest struct {
 	Session string `json:"sessionKey"`
@@ -11,7 +15,7 @@ type GroupMessageRequest struct {
 }
 
 type MessageSendRespond struct {
-	Code request.RespondStatus `json:"code"`
+	Code constdata.RespondStatus `json:"code"`
 
 	Message   string `json:"msg"`
 	MessageId uint64 `json:"messageId"`

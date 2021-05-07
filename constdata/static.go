@@ -1,4 +1,4 @@
-package request
+package constdata 
 
 type RespondStatus uint
 
@@ -38,4 +38,20 @@ type MessageDataType string
 const(
 	Plain MessageDataType="Plain"
 	Image MessageDataType="Image"
+	Source MessageDataType ="Source"
+)
+
+type MessageSendPort string
+
+const (
+	GroupSend MessageSendPort ="/sendGroupMessage"
+	FirendSend MessageSendPort ="/sendFriendMessage"
+	TempSend MessageSendPort ="/sendTempMessage"
+	ImageSend MessageSendPort="/sendImageMessage"
+
+	RecallMessage MessageSendPort="/recall"
+
+	UploadImage MessageSendPort="/uploadImage"
+	UploadVoice MessageSendPort="/uploadVoice"
+	UploadFile MessageSendPort="/uploadFileAndSend"
 )

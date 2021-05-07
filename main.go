@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"goMiraiQQBot/constdata"
 	"goMiraiQQBot/request"
 	"goMiraiQQBot/request/structs"
 	"goMiraiQQBot/request/structs/message"
@@ -38,7 +39,7 @@ func main() {
 			"authKey": authKey,
 		},
 		&resInterface)
-	if err != nil || resInterface.Code != request.Normal {
+	if err != nil || resInterface.Code != constdata.Normal {
 		log.Fatal(err)
 		return
 	}
@@ -53,7 +54,7 @@ func main() {
 	var res structs.VerifyRespond
 
 	err = request.PostWithTargetRespond("/verify", verifyRequestBody, &res)
-	if err != nil || res.Code != request.Normal {
+	if err != nil || res.Code != constdata.Normal {
 		log.Fatal(err)
 		return
 	}
@@ -85,19 +86,19 @@ func main() {
 				return
 			}
 
-			if f.Type == request.GroupMessage {
+			if f.Type == constdata.GroupMessage {
 				go func() {
 					chain := f.MessageChain
 					messageChain := chain[1]
 					var code string = ""
-					if messageChain["type"].(string) == string(request.Plain) {
+					if messageChain["type"].(string) == string(constdata.Plain) {
 						text := messageChain["text"].(string)
 
 						if !strings.HasPrefix(text, "#") {
 							return
 						}
 						code = strings.Replace(text, "#", "", 1)
-					} else if messageChain["type"].(string) == string(request.Image) {
+					} else if messageChain["type"].(string) == string(constdata.Image) {
 
 						code = fmt.Sprintf("收到图片")
 					} else {
@@ -109,15 +110,15 @@ func main() {
 						Target:  f.Sender.GroupIn.Id,
 						Clain: []request.H{
 							{
-								"type": string(request.Plain),
+								"type": string(constdata.Plain),
 								"text": fmt.Sprintf("收到信息！\n 来自群[%v(%v)]\n发送者[%v(%v)]\n`%v`",
 									f.Sender.GroupIn.Name, f.Sender.GroupIn.Id,
 									f.Sender.MemberName, f.Sender.Id, code),
 							}},
 					}
-					if messageChain["type"].(string) == string(request.Image) {
+					if messageChain["type"].(string) == string(constdata.Image) {
 						msg.Clain = append(msg.Clain, request.H{
-							"type": string(request.Image),
+							"type": string(constdata.Image),
 							"url":  messageChain["url"].(string),
 						})
 					}

@@ -1,9 +1,9 @@
 package structs
 
-import "goMiraiQQBot/request"
+import "goMiraiQQBot/constdata"
 
 type AuthRespond struct {
-	Code    request.RespondStatus `json:"code"`
+	Code    constdata.RespondStatus `json:"code"`
 	Session string                `json:"session"`
 }
 
@@ -13,6 +13,6 @@ type VerifyQQRequest struct {
 }
 
 type VerifyRespond struct {
-	Code    request.RespondStatus `json:"code"`
+	Code    constdata.RespondStatus `json:"code"`
 	Message string                `json:"msg"`
 }
