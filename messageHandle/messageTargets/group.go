@@ -21,6 +21,15 @@ func NewGroupTarget(targetId uint64,chains[]request.H) MessageTarget {
 	}
 }
 
+func NewSingleTextGroupTarget(grpoupId uint64,text string)MessageTarget{
+	return NewGroupTarget(grpoupId,[]request.H{
+		{
+			"type":constdata.Plain.String(),
+			"text":text,
+		},
+	})
+}
+
 func (target GroupTarget) GetTargetPort() constdata.MessageSendPort {
 	return constdata.GroupSend
 }

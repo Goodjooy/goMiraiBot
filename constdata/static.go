@@ -35,6 +35,8 @@ const (
 
 type MessageDataType string
 
+func (mdt MessageDataType)String()string{return string(mdt)}
+
 const(
 	Plain MessageDataType="Plain"
 	Image MessageDataType="Image"

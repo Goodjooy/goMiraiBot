@@ -87,7 +87,7 @@ func main() {
 	done := make(chan struct{})
 	//load message
 
-	go func() {
+	messageReciver:= func() {
 		defer close(done)
 
 		for {
@@ -106,9 +106,9 @@ func main() {
 			reqMessage <- msg
 			log.Print("send Message To Handle")
 		}
-	}()
+	}
 
-	go func() {
+	messageSender:= func() {
 		for {
 			select {
 			case data, ok := (<-resMessage):
@@ -121,7 +121,16 @@ func main() {
 				}
 			}
 		}
-	}()
+	}
+
+	go messageReciver()
+	go messageReciver()
+
+	go messageSender()
+	go messageSender()
+	go messageSender()
+	go messageSender()
+
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 

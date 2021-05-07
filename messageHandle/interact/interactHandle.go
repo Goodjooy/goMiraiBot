@@ -3,12 +3,14 @@ package interact
 import (
 	"goMiraiQQBot/constdata"
 	cmi "goMiraiQQBot/messageHandle/interact/contextMessageInteract"
+	hentaiimageinteract "goMiraiQQBot/messageHandle/interact/contextMessageInteract/hentaiImageInteract"
 	smi "goMiraiQQBot/messageHandle/interact/sinpleMessageInteract"
 	msh "goMiraiQQBot/messageHandle/messageSourceHandles"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/structs"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type GroupMemberContext map[uint64]cmi.ContextMessageInteract
@@ -18,20 +20,23 @@ type ContextInteractConstruct func() cmi.ContextMessageInteract
 
 //活跃的信息注册
 var activateContextInteract map[uint64]GroupMemberContext = make(map[uint64]GroupMemberContext)
+var activateMut sync.RWMutex
 
 //构造容器
 var singleInteract map[string]SingleInteractConstruct = make(map[string]SingleInteractConstruct)
 var contextInteract map[string]ContextInteractConstruct = map[string]ContextInteractConstruct{}
 
-func GetSingleCommand()[]string{
+func GetSingleCommand() []string {
 	var cmds []string
-	for k := range singleInteract {cmds = append(cmds, k)
+	for k := range singleInteract {
+		cmds = append(cmds, k)
 	}
 	return cmds
 }
-func GetContextCommand()[]string{
+func GetContextCommand() []string {
 	var cmds []string
-	for k := range contextInteract {cmds = append(cmds, k)
+	for k := range contextInteract {
+		cmds = append(cmds, k)
 	}
 	return cmds
 }
@@ -41,14 +46,21 @@ func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets
 	addSingleInteract(NewHelpInteract)
 	addSingleInteract(smi.NewAboutInteract)
 
-	
+	addContextInteract(hentaiimageinteract.NewHentaiImageSearchInteract)
+
+	go acceptMessage(msgChan, msgRes)
 	go acceptMessage(msgChan, msgRes)
 }
 
-func addSingleInteract(handle SingleInteractConstruct){
-	key:=strings.ToLower(handle().GetCommandName())
+func addSingleInteract(handle SingleInteractConstruct) {
+	key := strings.ToLower(handle().GetCommandName())
 
-	singleInteract[key]=handle
+	singleInteract[key] = handle
+}
+func addContextInteract(handle ContextInteractConstruct) {
+	key := strings.ToLower(handle().GetInitCommand())
+
+	contextInteract[key] = handle
 }
 
 func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
@@ -67,29 +79,35 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 							context.NextMessage(data, msgRes)
 							//check done
 							if context.IsDone() {
+								activateMut.Lock()
 								delete(group, d.UserId)
+								activateMut.Unlock()
 							}
+							continue
 						}
-					} else {
-						//激活上下文，第二优先级
-						msgChain := data.ChainInfoList
-						cmd, ok := commandGet(msgChain)
-						if ok {
-							if context, ok := contextInteract[cmd]; ok {
-								var c = context().InitMessage(
-									data,
-									msgRes,
-								)
+					}
+					//激活上下文，第二优先级
+					msgChain := data.ChainInfoList
+					cmd, ok := commandGet(msgChain)
+					if ok {
+						if context, ok := contextInteract[cmd]; ok {
+							var c = context().InitMessage(
+								data,
+								msgRes,
+							)
 
-								group, ok := activateContextInteract[d.GroupId]
-								if !ok {
-									group := make(GroupMemberContext)
-									activateContextInteract[d.GroupId] = group
-								}
-								group[d.UserId] = c
-							} else if signle, ok := singleInteract[cmd]; ok {
-								signle().EnterMessage(data, msgRes)
+							group, ok := activateContextInteract[d.GroupId]
+							if !ok {
+								group = make(GroupMemberContext)
+								activateMut.Lock()
+								activateContextInteract[d.GroupId] = group
+								activateMut.Unlock()
 							}
+							activateMut.Lock()
+							group[d.UserId] = c
+							activateMut.Unlock()
+						} else if signle, ok := singleInteract[cmd]; ok {
+							signle().EnterMessage(data, msgRes)
 						}
 					}
 				}
