@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-type GroupMemberContext map[uint64]ContextMessageInteract
+type GroupMemberContext map[uint64]ContextInteract
 
 type SingleInteractConstruct func() SingleMessageInteract
 type ContextInteractConstruct func() ContextMessageInteract

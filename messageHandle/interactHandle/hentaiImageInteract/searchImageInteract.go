@@ -31,7 +31,7 @@ func (HentaiImageSearchInteract) GetInitCommand() []string {
 func (h *HentaiImageSearchInteract) InitMessage(
 	extraCmd datautil.MutliToOneMap,
 	data structs.Message,
-	redChan chan messagetargets.MessageTarget) interact.ContextMessageInteract {
+	redChan chan messagetargets.MessageTarget) interact.ContextInteract {
 	var msg sourceHandle.GroupMessage = data.Source.GetMetaInformation().(sourceHandle.GroupMessage)
 	var res = messagetargets.NewChainsGroupTarget(msg.GroupId,
 		structs.NewTextChain("请发送一个图片以搜索 \n 发送 “取消” 以取消等待图片操作"))

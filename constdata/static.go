@@ -43,6 +43,7 @@ const (
 	Source MessageDataType = "Source"
 	Quote  MessageDataType = "Quote"
 	At     MessageDataType = "At"
+	Xml    MessageDataType = "Xml"
 )
 
 type MessageSendPort string
