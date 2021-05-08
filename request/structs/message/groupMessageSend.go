@@ -16,8 +16,8 @@ type GroupMessageRequest struct {
 type TempMessageRequest struct {
 	Session string `json:"sessionKey"`
 
-	QQ    uint64 `json:"target"`
-	Group uint64 `json:"-"`
+	QQ    uint64 `json:"qq"`
+	Group uint64 `json:"group"`
 
 	Clain []request.H `json:"messageChain"`
 }

@@ -1,6 +1,7 @@
 package messagetargets
 
 import (
+	"fmt"
 	"goMiraiQQBot/constdata"
 	"goMiraiQQBot/messageHandle/structs"
 	"goMiraiQQBot/request"
@@ -44,4 +45,8 @@ func (target GroupTarget) GetTargetPort() constdata.MessageSendPort {
 func (target GroupTarget) GetSendContain(sessionKey string) interface{} {
 	target.data.Session = sessionKey
 	return target.data
+}
+
+func (target GroupTarget)GetSendMessage()string{
+	return fmt.Sprintf("Send Group Message<GID:%v>",target.data.Target)
 }

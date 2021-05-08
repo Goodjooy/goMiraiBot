@@ -14,6 +14,7 @@ import (
 	"goMiraiQQBot/request"
 	"goMiraiQQBot/request/structs"
 	"goMiraiQQBot/request/structs/message"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -21,14 +22,16 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"gopkg.in/yaml.v3"
 )
 
-const authKey = "INITKEYy2euAf0E"
 
-var addr = flag.String("addr", "0.0.0.0:8080", "http service address")
+
 
 func main() {
-
+	cfg:=loadConfig()
+	
+	var addr = flag.String("addr", fmt.Sprintf("%s:%v",cfg.Server.Host,cfg.Server.Port), "http service address")
 	flag.Parse()
 	log.SetFlags(1)
 
@@ -41,7 +44,7 @@ func main() {
 	err := request.PostWithTargetRespond(
 		"/auth",
 		request.H{
-			"authKey": authKey,
+			"authKey": cfg.Bot.AuthKey,
 		},
 		&resInterface)
 	if err != nil || resInterface.Code != constdata.Normal {
@@ -53,7 +56,7 @@ func main() {
 
 	//verify qq
 	verifyRequestBody := structs.VerifyQQRequest{
-		QQ:         3628862306,
+		QQ:         uint64(cfg.Bot.QQ),
 		SessionKey: resInterface.Session,
 	}
 	var res structs.VerifyRespond
@@ -86,7 +89,6 @@ func main() {
 
 	interact.AddContextInteract(hentaiimageinteract.NewHentaiImageSearchInteract)
 
-	
 	interact.InitInteractHandle(reqMessage, resMessage)
 
 	done := make(chan struct{})
@@ -97,17 +99,16 @@ func main() {
 
 		for {
 			var f message.MessageMapRespond
-			_,info,err:=socket.ReadMessage()
+			_, info, err := socket.ReadMessage()
 			if err != nil {
 				log.Fatal("readMessageFatal: ", err)
 				return
 			}
-			err=json.Unmarshal(info,&f.Data)
+			err = json.Unmarshal(info, &f.Data)
 			if err != nil {
-				log.Fatal("Unmarshal Json Failure",err)
+				log.Fatal("Unmarshal Json Failure", err)
 				continue
 			}
-
 
 			msg, err := s.FromMessageRespondData(f)
 			if err != nil {
@@ -116,7 +117,8 @@ func main() {
 			}
 
 			reqMessage <- msg
-			log.Print("send Message To Handle")
+			log.Print("Accept Message!")
+			log.Printf("%+v",f.Data)
 		}
 	}
 
@@ -125,17 +127,17 @@ func main() {
 			select {
 			case data, ok := (<-resMessage):
 				if ok {
-
+					log.Printf("Handle Message Send: %v", data.GetSendMessage())
 					var result message.MessageSendRespond
-					err := request.PostWithTargetRespond(string(data.GetTargetPort()), data.GetSendContain(resInterface.Session),&result)
+					err := request.PostWithTargetRespond(string(data.GetTargetPort()), data.GetSendContain(resInterface.Session), &result)
 					if err != nil {
 						log.Fatalf("Send Message Fail %v", err)
 						continue
 					}
-					if result.Code!=constdata.Normal{
-						log.Fatal("Bad Respond Code: ",(result.Code))
-					}else {
-						log.Printf("Success Send Message! messageId:%v",result.MessageId)
+					if result.Code != constdata.Normal {
+						log.Fatal("Bad Respond Code: ", (result.Code))
+					} else {
+						log.Printf("Success Send Message! messageId:%v", result.MessageId)
 					}
 				}
 			}
@@ -179,4 +181,49 @@ func main() {
 			}
 		}
 	}
+}
+
+type config struct {
+	Server server `yaml:"server"`
+	Bot bot `yaml:"bot"`
+}
+
+type server struct {
+	Host string`yaml:"host"`
+	Port uint`yaml:"port"`
+}
+
+type bot struct {
+	QQ uint `yaml:"QQ"`
+	AuthKey string `yaml:"authKey"`
+}
+
+func loadConfig()config{
+	c:=config{
+		Server: server{
+			Host: "127.0.0.1",
+			Port: 8080,
+		},
+		Bot: bot{
+			QQ: 0,
+			AuthKey: "",	
+		},
+	}
+	var cfg config
+	file,err:=os.Open("./config.yml")
+	if err != nil {
+		return c	
+	}
+	defer file.Close()
+
+	data,err:=ioutil.ReadAll(file)
+	if err != nil {
+		return c
+	}
+
+	err=yaml.Unmarshal(data,&cfg)
+	if err != nil {
+		return c
+	}
+	return cfg
 }

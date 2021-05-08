@@ -7,5 +7,7 @@ type MessageTarget interface {
 	GetTargetPort()constdata.MessageSendPort
 	//GetSendContain 获取荷载
 	GetSendContain(sessionKey string)interface{}
+	//GetSendMessage
+	GetSendMessage()string
 }
 
