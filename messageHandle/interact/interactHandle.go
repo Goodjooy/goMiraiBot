@@ -2,21 +2,17 @@ package interact
 
 import (
 	"goMiraiQQBot/constdata"
-	cmi "goMiraiQQBot/messageHandle/interact/contextMessageInteract"
-	hentaiimageinteract "goMiraiQQBot/messageHandle/interact/contextMessageInteract/hentaiImageInteract"
-	smi "goMiraiQQBot/messageHandle/interact/sinpleMessageInteract"
-	msh "goMiraiQQBot/messageHandle/messageSourceHandles"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
+	"goMiraiQQBot/messageHandle/sourceHandle"
 	"goMiraiQQBot/messageHandle/structs"
-	"regexp"
 	"strings"
 	"sync"
 )
 
-type GroupMemberContext map[uint64]cmi.ContextMessageInteract
+type GroupMemberContext map[uint64]ContextMessageInteract
 
-type SingleInteractConstruct func() smi.SingleMessageInteract
-type ContextInteractConstruct func() cmi.ContextMessageInteract
+type SingleInteractConstruct func() SingleMessageInteract
+type ContextInteractConstruct func() ContextMessageInteract
 
 //活跃的信息注册
 var activateContextInteract map[uint64]GroupMemberContext = make(map[uint64]GroupMemberContext)
@@ -26,14 +22,14 @@ var activateMut sync.RWMutex
 var singleInteract map[string]SingleInteractConstruct = make(map[string]SingleInteractConstruct)
 var contextInteract map[string]ContextInteractConstruct = map[string]ContextInteractConstruct{}
 
-func GetSingleCommand() []string {
+func SetSingleCommand() []string {
 	var cmds []string
 	for k := range singleInteract {
 		cmds = append(cmds, k)
 	}
 	return cmds
 }
-func GetContextCommand() []string {
+func SetContextCommand() []string {
 	var cmds []string
 	for k := range contextInteract {
 		cmds = append(cmds, k)
@@ -41,26 +37,38 @@ func GetContextCommand() []string {
 	return cmds
 }
 
+func GetSingleInteract(key string) (SingleInteractConstruct, bool) {
+	v, ok := singleInteract[key]
+	return v, ok
+}
+
+func GetContextInteract(key string) (ContextInteractConstruct, bool) {
+	v, ok := contextInteract[key]
+	return v, ok
+}
+
 func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
 	//register interacter
-	addSingleInteract(NewHelpInteract)
-	addSingleInteract(smi.NewAboutInteract)
-
-	addContextInteract(hentaiimageinteract.NewHentaiImageSearchInteract)
-
 	go acceptMessage(msgChan, msgRes)
 	go acceptMessage(msgChan, msgRes)
 }
 
-func addSingleInteract(handle SingleInteractConstruct) {
-	key := strings.ToLower(handle().GetCommandName())
+func AddSingleInteract(handle SingleInteractConstruct) {
+	keys := handle().GetCommandName()
 
-	singleInteract[key] = handle
+	for _, key := range keys {
+		key = strings.ToLower(key)
+		singleInteract[key] = handle
+	}
+
 }
-func addContextInteract(handle ContextInteractConstruct) {
-	key := strings.ToLower(handle().GetInitCommand())
+func AddContextInteract(handle ContextInteractConstruct) {
+	keys := handle().GetInitCommand()
 
-	contextInteract[key] = handle
+	for _, key := range keys {
+		key = strings.ToLower(key)
+		contextInteract[key] = handle
+	}
 }
 
 func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
@@ -71,7 +79,7 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 				source := data.Source
 				//信息类型为群消息
 				if source.GetSource() == constdata.GroupMessage {
-					var d msh.GroupMessage = source.GetMetaInformation().(msh.GroupMessage)
+					var d sourceHandle.GroupMessage = source.GetMetaInformation().(sourceHandle.GroupMessage)
 
 					//上下文环境持续，最高优先级
 					if group, ok := activateContextInteract[d.GroupId]; ok {
@@ -90,8 +98,9 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 					msgChain := data.ChainInfoList
 					cmd, ok := commandGet(msgChain)
 					if ok {
-						if context, ok := contextInteract[cmd]; ok {
+						if context, ok := contextInteract[cmd.mainCmd]; ok {
 							var c = context().InitMessage(
+								cmd.extraCmd,
 								data,
 								msgRes,
 							)
@@ -106,30 +115,12 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 							activateMut.Lock()
 							group[d.UserId] = c
 							activateMut.Unlock()
-						} else if signle, ok := singleInteract[cmd]; ok {
-							signle().EnterMessage(data, msgRes)
+						} else if signle, ok := singleInteract[cmd.mainCmd]; ok {
+							signle().EnterMessage(cmd.extraCmd, data, msgRes)
 						}
 					}
 				}
 			}
 		}
 	}
-}
-
-var cmdPattern = regexp.MustCompile(`^#\s*(\S+)\s*`)
-
-func commandGet(msgChain []structs.MessageChainInfo) (string, bool) {
-	for _, v := range msgChain {
-		//找到第一段文本
-		if v.MessageType == constdata.Plain {
-			//获取文本
-			msg := v.Data["text"].(string)
-			//以#开头
-			if strings.HasPrefix(msg, "#") {
-				cmd := cmdPattern.FindStringSubmatch(msg)[1]
-				return strings.ToLower(cmd), true
-			}
-		}
-	}
-	return "", false
 }

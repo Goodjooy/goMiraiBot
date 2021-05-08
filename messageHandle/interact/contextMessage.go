@@ -1,6 +1,7 @@
-package contextmessageinteract
+package interact
 
 import (
+	datautil "goMiraiQQBot/dataUtil"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/structs"
 )
@@ -10,11 +11,13 @@ ContextMessageInteract 有上下文关系的信息交互部分,
 能够提供连续的信息交互.优先级高于普通信息交互
 */
 type ContextMessageInteract interface {
+	//GetUseage 获取命令使用方法
+	GetUseage()string
 	//GetInitCommand
-	GetInitCommand()string
+	GetInitCommand()[]string
 
 	//InitMessage 上下文交互创建时使用,初始化数据，响应消息
-	InitMessage(msg structs.Message,redChan chan messagetargets.MessageTarget)ContextMessageInteract
+	InitMessage(extraCmd datautil.MutliToOneMap,msg structs.Message,redChan chan messagetargets.MessageTarget)ContextMessageInteract
 	//NextMessage 向上下文提交信息
 	NextMessage(msg structs.Message,redChan chan messagetargets.MessageTarget)
 	

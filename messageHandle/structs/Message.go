@@ -2,14 +2,14 @@ package structs
 
 import (
 	"goMiraiQQBot/constdata"
-	messagesourcehandles "goMiraiQQBot/messageHandle/messageSourceHandles"
+	"goMiraiQQBot/messageHandle/sourceHandle"
 	"goMiraiQQBot/request/structs/message"
 )
 
 // 接受到的信息
 type Message struct {
 	//Source 信息的来源
-	Source messagesourcehandles.MessageSource
+	Source sourceHandle.MessageSource
 	// HeadInfo 信息的头部信息,包括信息id和信息发送时间
 	HeadInfo MessageHeadInfo
 	//信息链的信息
@@ -21,13 +21,10 @@ type MessageHeadInfo struct {
 	Time uint64
 }
 
-type MessageChainInfo struct {
-	MessageType constdata.MessageDataType
-	Data        map[string]interface{}
-}
+
 
 func FromMessageRespondData(data message.MessageMapRespond) (Message, error) {
-	source, err := messagesourcehandles.FromMessageMap(data)
+	source, err := sourceHandle.FromMessageMap(data)
 	if err != nil {
 		return Message{}, err
 	}

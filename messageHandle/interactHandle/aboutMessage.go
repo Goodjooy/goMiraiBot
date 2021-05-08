@@ -1,9 +1,11 @@
-package sinplemessageinteract
+package interactHandle
 
 import (
 	"goMiraiQQBot/constdata"
-	msh "goMiraiQQBot/messageHandle/messageSourceHandles"
+	datautil "goMiraiQQBot/dataUtil"
+	"goMiraiQQBot/messageHandle/interact"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
+	"goMiraiQQBot/messageHandle/sourceHandle"
 	"goMiraiQQBot/messageHandle/structs"
 	"goMiraiQQBot/request"
 )
@@ -11,12 +13,12 @@ import (
 type AboutInteract struct {
 }
 
-func NewAboutInteract() SingleMessageInteract {
+func NewAboutInteract() interact.SingleMessageInteract {
 	return AboutInteract{}
 }
 
-func (AboutInteract) GetCommandName() string {
-	return "about"
+func (AboutInteract) GetCommandName() []string {
+	return []string{"about","关于"}
 }
 func (AboutInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
@@ -25,10 +27,11 @@ func (AboutInteract) RespondSource() []constdata.MessageType {
 }
 
 func (i AboutInteract) EnterMessage(
+	extraCmd datautil.MutliToOneMap,
 	data structs.Message,
 	repChan chan messagetargets.MessageTarget) {
 
-		var msg msh.GroupMessage = data.Source.GetMetaInformation().(msh.GroupMessage)
+		var msg ,_= sourceHandle.GetGoupSoucreMessage(data.Source)
 	
 		var da=messagetargets.NewGroupTarget(msg.GroupId,[]request.H{
 			{
@@ -37,4 +40,9 @@ func (i AboutInteract) EnterMessage(
 			}})
 
 		repChan<-da
+	}
+
+	func (AboutInteract)	GetUseage()string{
+		return "#about|#关于 : 返回当前机器人的简介\n"+
+		"额外指令：无"
 	}

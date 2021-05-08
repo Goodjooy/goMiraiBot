@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"goMiraiQQBot/constdata"
 	"goMiraiQQBot/messageHandle/interact"
-	messagesourcehandles "goMiraiQQBot/messageHandle/messageSourceHandles"
+	"goMiraiQQBot/messageHandle/interactHandle"
+	hentaiimageinteract "goMiraiQQBot/messageHandle/interactHandle/hentaiImageInteract"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
+	"goMiraiQQBot/messageHandle/sourceHandle"
 	s "goMiraiQQBot/messageHandle/structs"
 	"goMiraiQQBot/request"
 	"goMiraiQQBot/request/structs"
@@ -15,7 +18,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"regexp"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -24,10 +26,6 @@ import (
 const authKey = "INITKEYy2euAf0E"
 
 var addr = flag.String("addr", "0.0.0.0:8080", "http service address")
-
-var messagechannal = make(chan message.MessageData, 128)
-
-var cmdPattern = regexp.MustCompile(`^#\s*(\S+)\s*`)
 
 func main() {
 
@@ -81,22 +79,36 @@ func main() {
 	resMessage := make(chan messagetargets.MessageTarget)
 	reqMessage := make(chan s.Message)
 
-	messagesourcehandles.InitMessageSourceHandle()
+	sourceHandle.InitMessageSourceHandle()
+
+	interact.AddSingleInteract(interactHandle.NewHelpInteract)
+	interact.AddSingleInteract(interactHandle.NewAboutInteract)
+
+	interact.AddContextInteract(hentaiimageinteract.NewHentaiImageSearchInteract)
+
+	
 	interact.InitInteractHandle(reqMessage, resMessage)
 
 	done := make(chan struct{})
 	//load message
 
-	messageReciver:= func() {
+	messageReciver := func() {
 		defer close(done)
 
 		for {
 			var f message.MessageMapRespond
-			err := socket.ReadJSON(&f.Data)
+			_,info,err:=socket.ReadMessage()
 			if err != nil {
 				log.Fatal("readMessageFatal: ", err)
 				return
 			}
+			err=json.Unmarshal(info,&f.Data)
+			if err != nil {
+				log.Fatal("Unmarshal Json Failure",err)
+				continue
+			}
+
+
 			msg, err := s.FromMessageRespondData(f)
 			if err != nil {
 				log.Fatal(err)
@@ -108,15 +120,22 @@ func main() {
 		}
 	}
 
-	messageSender:= func() {
+	messageSender := func() {
 		for {
 			select {
 			case data, ok := (<-resMessage):
 				if ok {
-					_, err := request.Post(string(data.GetTargetPort()), data.GetSendContain(resInterface.Session))
+
+					var result message.MessageSendRespond
+					err := request.PostWithTargetRespond(string(data.GetTargetPort()), data.GetSendContain(resInterface.Session),&result)
 					if err != nil {
 						log.Fatalf("Send Message Fail %v", err)
 						continue
+					}
+					if result.Code!=constdata.Normal{
+						log.Fatal("Bad Respond Code: ",(result.Code))
+					}else {
+						log.Printf("Success Send Message! messageId:%v",result.MessageId)
 					}
 				}
 			}

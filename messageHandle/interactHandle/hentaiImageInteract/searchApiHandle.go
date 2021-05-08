@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"goMiraiQQBot/constdata"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
+	"goMiraiQQBot/messageHandle/structs"
 	"goMiraiQQBot/request"
 	"io/ioutil"
 	"log"
@@ -27,7 +28,10 @@ type crsfToken struct {
 	token string
 }
 
-func searchHandle(groupId uint64, imageURL string, resChan chan messagetargets.MessageTarget) {
+func searchHandle(count int,
+	groupId, userId uint64,
+	imageURL string,
+	resChan chan messagetargets.MessageTarget) {
 	resChan <- messagetargets.NewSingleTextGroupTarget(groupId, "正在以图搜图...")
 
 	//时间限制，30s内只进行一次
@@ -56,10 +60,28 @@ func searchHandle(groupId uint64, imageURL string, resChan chan messagetargets.M
 		resChan <- messagetargets.NewSingleTextGroupTarget(groupId, fmt.Sprintf("发起图片搜索失败：%v", err))
 		return
 	}
+	size := len(results)
+	var c int
+	if count >= int(size) || count < 0 {
+		c = int(size)
+	} else {
+		c = count
+	}
+	msg := fmt.Sprintf("搜索到%v个结果,将发送前%v个结果\n来源：%v", size, c, api)
+	resChan <- messagetargets.NewChainsGroupTarget(groupId,
+		structs.NewAtChain(userId, ""),
+		structs.NewTextChain(" "+msg))
 
-	resChan <- messagetargets.NewSingleTextGroupTarget(groupId, fmt.Sprintf("搜索到%v个结果,将发送前4个结果\n来源：%v", len(results), api))
-	for _, v := range results[:4] {
-		resChan <- messagetargets.NewGroupTarget(groupId, v.toChains())
+	handle := senderChainer()
+	for _, v := range results[:c] {
+		resChan <- handle(groupId, userId, v.toChains()...)
+	}
+
+}
+
+func senderChainer() func(groupId, userId uint64, chains ...request.H) messagetargets.MessageTarget {
+	return func(groupId, userId uint64, chains ...request.H) messagetargets.MessageTarget {
+		return messagetargets.NewGroupTarget(groupId, chains)
 	}
 
 }

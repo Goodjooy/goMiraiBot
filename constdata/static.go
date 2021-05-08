@@ -1,4 +1,4 @@
-package constdata 
+package constdata
 
 type RespondStatus uint
 
@@ -35,25 +35,27 @@ const (
 
 type MessageDataType string
 
-func (mdt MessageDataType)String()string{return string(mdt)}
+func (mdt MessageDataType) String() string { return string(mdt) }
 
-const(
-	Plain MessageDataType="Plain"
-	Image MessageDataType="Image"
-	Source MessageDataType ="Source"
+const (
+	Plain  MessageDataType = "Plain"
+	Image  MessageDataType = "Image"
+	Source MessageDataType = "Source"
+	Quote  MessageDataType = "Quote"
+	At     MessageDataType = "At"
 )
 
 type MessageSendPort string
 
 const (
-	GroupSend MessageSendPort ="/sendGroupMessage"
-	FirendSend MessageSendPort ="/sendFriendMessage"
-	TempSend MessageSendPort ="/sendTempMessage"
-	ImageSend MessageSendPort="/sendImageMessage"
+	GroupSend  MessageSendPort = "/sendGroupMessage"
+	FirendSend MessageSendPort = "/sendFriendMessage"
+	TempSend   MessageSendPort = "/sendTempMessage"
+	ImageSend  MessageSendPort = "/sendImageMessage"
 
-	RecallMessage MessageSendPort="/recall"
+	RecallMessage MessageSendPort = "/recall"
 
-	UploadImage MessageSendPort="/uploadImage"
-	UploadVoice MessageSendPort="/uploadVoice"
-	UploadFile MessageSendPort="/uploadFileAndSend"
+	UploadImage MessageSendPort = "/uploadImage"
+	UploadVoice MessageSendPort = "/uploadVoice"
+	UploadFile  MessageSendPort = "/uploadFileAndSend"
 )

@@ -1,6 +1,7 @@
-package messagesourcehandles
+package sourceHandle
 
 import (
+	"errors"
 	"goMiraiQQBot/constdata"
 )
 
@@ -42,4 +43,11 @@ func (handle GroupMessageSourceHandle) GetSource() constdata.MessageType {
 
 func (handle GroupMessageSourceHandle) GetMetaInformation() interface{} {
 	return handle.data
+}
+
+func GetGoupSoucreMessage(source MessageSource)(GroupMessage,error){
+	if source.GetSource()==constdata.GroupMessage{
+		return source.GetMetaInformation().(GroupMessage),nil
+	}
+	return GroupMessage{},errors.New("Source Not From GroupMessage")
 }

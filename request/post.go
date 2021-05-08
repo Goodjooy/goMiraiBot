@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type H map[string]string
+type H map[string]interface{}
 
 const contextType = "application/json"
 const urlBody = "http://0.0.0.0:8080"
