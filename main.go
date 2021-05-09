@@ -7,6 +7,7 @@ import (
 	"goMiraiQQBot/constdata"
 	"goMiraiQQBot/messageHandle/interact"
 	"goMiraiQQBot/messageHandle/interactHandle"
+	appchaininteract "goMiraiQQBot/messageHandle/interactHandle/appChainInteract"
 	hentaiimageinteract "goMiraiQQBot/messageHandle/interactHandle/hentaiImageInteract"
 	xmlchaininteract "goMiraiQQBot/messageHandle/interactHandle/xmlChainInteract"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
@@ -91,6 +92,7 @@ func main() {
 	interact.AddContextInteract(hentaiimageinteract.NewHentaiImageSearchInteract)
 
 	interact.AddChainSingleInteract(xmlchaininteract.NewXmlChainInteract)
+	interact.AddChainSingleInteract(appchaininteract.NewAppChainInteract)
 
 	interact.InitInteractHandle(reqMessage, resMessage)
 
