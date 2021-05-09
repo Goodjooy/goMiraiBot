@@ -37,22 +37,23 @@ func PostWithTargetRespond(path string, body interface{},resStructPtr interface{
 	if err != nil {
 		return  errors.New("Bad Respond : " + err.Error())
 	}
-	if res.StatusCode != http.StatusOK {
-		return  errors.New("Bad Respond Status : " + res.Status)
-	}
-
 	//recive message
 	respondByte, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return  errors.New("Failure Read RespondBody : " + err.Error())
 	}
-
 	//transfrom respond body
 	
 	err = json.Unmarshal(respondByte, &resStructPtr)
 	if err != nil {
 		return  errors.New("Transfrom Respond Body To Json Fail : " + err.Error())
 	}
+
+	if res.StatusCode != http.StatusOK {
+		return  errors.New("Bad Respond Status : " + res.Status)
+	}
+
+
 	
 	return  nil
 }

@@ -30,7 +30,7 @@ type ChainTypeContextInteract interface {
 
 
 	//InitMessage 上下文交互创建时使用,初始化数据，响应消息
-	InitMessage(extraCmd datautil.MutliToOneMap,msg structs.Message,redChan chan messagetargets.MessageTarget)ChainTypeContextInteract
+	InitMessage(extraCmd datautil.MutliToOneMap,msg structs.Message,redChan chan messagetargets.MessageTarget)ContextInteract
 	//NextMessage 向上下文提交信息
 	NextMessage(msg structs.Message,redChan chan messagetargets.MessageTarget)
 	

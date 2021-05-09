@@ -50,7 +50,7 @@ func (i HelpInteract) EnterMessage(
 			"text": "单次交互命令:\n",
 		})
 
-		for _, v := range interact.SetSingleCommand() {
+		for _, v := range interact.GetSingleCommand() {
 			d = append(d, request.H{
 				"type": string(constdata.Plain),
 				"text": " #" + v + "\n",
@@ -62,7 +62,7 @@ func (i HelpInteract) EnterMessage(
 			"text": "上下文交互命令\n",
 		})
 
-		for _, v := range interact.SetContextCommand() {
+		for _, v := range interact.GetContextCommand() {
 			d = append(d, request.H{
 				"type": string(constdata.Plain),
 				"text": " # " + v + "\n",
