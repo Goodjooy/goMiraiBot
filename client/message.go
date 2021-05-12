@@ -22,31 +22,31 @@ func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, sessi
 	var f message.MessageMapRespond
 	_, msgReader, err := msgSocket.NextReader()
 	if err != nil {
-		log.Fatal("Read Message | Get Message Failure: ", err)
-		cnn, _ := TryReDialWebSocket(EstablishMessageHandleWebSocket, 6, session, url)
-		conn.Conn = cnn
+		log.Print("Read Message | Get Message Failure: ", err)
+		//cnn, _ := TryReDialWebSocket(EstablishMessageHandleWebSocket, 6, session, url)
+		//conn.Conn = cnn
 		return
 	}
 	var data []byte
 	data, err = ioutil.ReadAll(msgReader)
 	if err != nil {
-		log.Fatal("Read Message | Read Data From Reader Fauiure: ", err)
+		log.Print("Read Message | Read Data From Reader Fauiure: ", err)
 		return
 	}
 
 	err = json.Unmarshal(data, &f.Data)
 	if err != nil {
-		log.Fatal("Read Message | Unmarshal Json Failure", err)
+		log.Print("Read Message | Unmarshal Json Failure", err)
 		return
 	}
 
 	msg, err := structs.FromMessageRespondData(f)
 	if err != nil {
-		log.Fatal("Read Message | Struct Transfrom Error: ", err)
+		log.Print("Read Message | Struct Transfrom Error: ", err)
 		return
 	}
 
-	log.Printf("Read Message | Accept Message Success! Source:%+v", msg.Source)
+	log.Printf("Read Message | Accept Message Success! Source: \n%+v", msg.Source)
 	reqMsg <- msg
 
 }
@@ -56,11 +56,11 @@ func MessageSender(data messagetargets.MessageTarget, session Session) {
 	var result message.MessageSendRespond
 	err := request.PostWithTargetRespond(string(data.GetTargetPort()), data.GetSendContain(string(session)), &result)
 	if err != nil {
-		log.Fatalf("Send Message Failure: %v", err)
+		log.Printf ("Send Message Failure: %v", err)
 		return
 	}
 	if result.Code != constdata.Normal {
-		log.Fatal("Bad Respond Code: ", (result.Code))
+		log.Print("Bad Respond Code: ", (result.Code))
 	} else {
 		log.Printf("Success Send Message! messageId: %v", result.MessageId)
 	}

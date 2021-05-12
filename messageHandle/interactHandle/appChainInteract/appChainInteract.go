@@ -48,7 +48,7 @@ func (xml *AppChainInteract) EnterMessage(
 	appInfo, err := jsonLoader(data.ChainInfoList[0].Data["content"].(string))
 	if err != nil {
 		if err != nil {
-			log.Fatal("failure to Transform Json |", err)
+			log.Print("failure to Transform Json |", err)
 			repChan <- messagetargets.NewSingleTextGroupTarget(source.GroupId, fmt.Sprintf("failure to Transform XML|%v", err))
 		}
 	}

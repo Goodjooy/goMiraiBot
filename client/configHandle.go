@@ -13,13 +13,17 @@ type Config struct {
 	Bot    Bot    `yaml:"bot"`
 }
 
+func (cfg Config)GetQQId()uint64{
+	return uint64(cfg.Bot.QQ)
+}
+
 type Server struct {
 	Host string `yaml:"host"`
 	Port uint   `yaml:"port"`
 }
 
 type Bot struct {
-	QQ      uint   `yaml:"QQ"`
+	QQ      uint64   `yaml:"QQ"`
 	AuthKey string `yaml:"authKey"`
 }
 
@@ -31,7 +35,7 @@ func LoadConfig(configPath string) Config {
 	}
 	path = configPath
 
-	log.Print("loading Config File[%v]", path)
+	log.Printf("loading Config File[%v]", path)
 
 	c := Config{
 		Server: Server{

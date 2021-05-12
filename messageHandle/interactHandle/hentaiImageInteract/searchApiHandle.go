@@ -41,7 +41,7 @@ func searchHandle(count int,
 	} else {
 		last := lastTime.(time.Time)
 		if last.Add(30 * time.Second).After(time.Now()) {
-			resChan <- messagetargets.NewSingleTextGroupTarget(groupId, "请求搜图间隔过短[<30s]")
+			resChan <- messagetargets.NewSingleTextGroupTarget(groupId, "请求搜图间隔过短[<30s]\n搜图任务取消")
 			return
 		} else {
 			lastTimeMap.Store(groupId, time.Now())

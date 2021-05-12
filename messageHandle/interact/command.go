@@ -17,6 +17,10 @@ type command struct {
 	extraCmd datautil.MutliToOneMap
 }
 
+type BotQQIdGeter interface {
+	GetQQId()uint64
+}
+
 func commandGet(msgChain []structs.MessageChainInfo) (command, bool) {
 	cmd := command{}
 	msg := commandLoad(msgChain)
@@ -40,6 +44,14 @@ func commandGet(msgChain []structs.MessageChainInfo) (command, bool) {
 
 func commandLoad(msgCHain []structs.MessageChainInfo) string {
 	var cmd string
+	if msgCHain[0].MessageType == constdata.At {
+		qqId := uint64(msgCHain[0].Data["target"].(float64))
+		if qqId == uint64(cfg.GetQQId()) {
+			cmd += "#"
+			msgCHain = msgCHain[1:]
+		}
+	}
+
 	for _, v := range msgCHain {
 		if v.MessageType == constdata.Plain {
 			cmd += v.Data["text"].(string)
@@ -48,7 +60,7 @@ func commandLoad(msgCHain []structs.MessageChainInfo) string {
 	return cmd
 }
 
-func atCommandLoad(msgChain []structs.MessageChainInfo)bool {
+func atCommandLoad(msgChain []structs.MessageChainInfo) bool {
 	//TODO: 监控是否@自己
 	return false
 }

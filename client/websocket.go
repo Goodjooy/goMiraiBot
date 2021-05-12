@@ -32,7 +32,7 @@ func establisWebSocket(url url.URL, session Session, path string) (*websocket.Co
 	s, _, err := websocket.DefaultDialer.Dial(targetURL.String(), nil)
 
 	if err != nil {
-		log.Fatal("Dial To websorct Falure Error: ", err)
+		log.Print("Dial To websorct Falure Error: ", err)
 		return s, err
 	}
 	return s, nil
@@ -44,7 +44,7 @@ func TryReDialWebSocket(dialer WebsocketDial, tryTime uint, session Session, url
 	for i := uint(0); i < tryTime; i++ {
 		conn, err := dialer(url, session)
 		if err != nil {
-			log.Fatalf("Try ReConnect To Websoeck Failure(%v/%v): %v", tryTime, i+1, err.Error())
+			log.Printf("Try ReConnect To Websoeck Failure(%v/%v): %v", tryTime, i+1, err.Error())
 			errs = append(errs, err)
 			continue
 		}

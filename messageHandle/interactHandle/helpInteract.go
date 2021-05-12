@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	single  = datautil.NewTargetValues("single", "单次", "单次交互", "单独", "一次性交互")
-	context = datautil.NewTargetValues("context", "上下文", "上下文交互", "语境", "语境交互")
+	single     = datautil.NewTargetValues("single", "单次", "单次交互", "单独", "一次性交互")
+	context    = datautil.NewTargetValues("context", "上下文", "上下文交互", "语境", "语境交互")
+	typeActive = datautil.NewTargetValues("type", "信息类型", "类型")
 )
 
 //帮助功能，用于显示全部命令
@@ -25,7 +26,7 @@ func NewHelpInteract() interact.SingleMessageInteract {
 }
 
 func (interact HelpInteract) GetCommandName() []string {
-	return []string{"help", "帮助"}
+	return []string{"help", "帮助", "功能"}
 }
 func (interact HelpInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
@@ -69,6 +70,18 @@ func (i HelpInteract) EnterMessage(
 			})
 		}
 
+		d = append(d, request.H{
+			"type": string(constdata.Plain),
+			"text": "信息类型单次响应\n",
+		})
+
+		for _, v := range interact.GetChainSingleCommand() {
+			d = append(d, request.H{
+				"type": string(constdata.Plain),
+				"text": "类型： " + v + "\n",
+			})
+		}
+
 		var da = messagetargets.NewGroupTarget(msg.GroupId, d)
 
 		repChan <- da
@@ -77,7 +90,7 @@ func (i HelpInteract) EnterMessage(
 		cmdName = strings.ToLower(cmdName)
 		sourceName, _ := extraCmd.GetWithDefault("single", "type", "来源", "类型")
 
-		if nok  {
+		if nok {
 			if single.Match(sourceName) {
 				c, ok := interact.GetSingleInteract(cmdName)
 				if ok {
@@ -86,6 +99,12 @@ func (i HelpInteract) EnterMessage(
 				}
 			} else if context.Match(sourceName) {
 				c, ok := interact.GetContextInteract(cmdName)
+				if ok {
+					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())
+					return
+				}
+			}else if typeActive.Match(sourceName){
+				c, ok := interact.GetSingleInteract(cmdName)
 				if ok {
 					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())
 					return

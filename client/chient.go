@@ -52,19 +52,19 @@ func (client *BotWsClient) Run() error {
 	log.Print("Souce Handle Init Success!")
 
 	log.Print("Init Interact Handle")
-	interact.InitInteractHandle(client.msgGetChan, client.msgReq)
+	interact.InitInteractHandle(client.msgGetChan, client.msgReq, client.config)
 	log.Print("Interact Handle Init Success")
 
 	session, err := AuthQQKey(config)
 	if err != nil {
-		log.Fatal("Init Bot Clent Faulure | Send Auth Key: ", err)
+		log.Print("Init Bot Clent Faulure | Send Auth Key: ", err)
 		return err
 	} else {
 		client.session = session
 	}
 	err = VerifyQQ(session, config)
 	if err != nil {
-		log.Fatal("Init Bot Clent Faulure | Verify QQ: ", err)
+		log.Print("Init Bot Clent Faulure | Verify QQ: ", err)
 		return err
 	}
 
@@ -73,7 +73,7 @@ func (client *BotWsClient) Run() error {
 
 	client.msgSocket, err = EstablishMessageHandleWebSocket(client.rootURL, session)
 	if err != nil {
-		log.Fatal("Init Bot Clent Faulure | Establish Websocket at `/message` : ", err)
+		log.Print("Init Bot Clent Faulure | Establish Websocket at `/message` : ", err)
 		return err
 	}
 
@@ -94,7 +94,7 @@ func (client *BotWsClient) Run() error {
 
 func (client *BotWsClient) Close() {
 	client.msgSocket.Close()
-	client.eventSocket.Close()
+	//client.eventSocket.Close()
 }
 
 func (client *BotWsClient) GetDoneChan() chan struct{} {

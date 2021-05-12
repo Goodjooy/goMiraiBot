@@ -22,11 +22,11 @@ func AuthQQKey(cfg Config) (Session, error) {
 		&resInterface)
 
 	if err != nil {
-		log.Fatal("Send Auth Key Error: ", err)
+		log.Print("Send Auth Key Error: ", err)
 		return "", err
 	}
 	if resInterface.Code != constdata.Normal {
-		log.Fatal("Send Auth Key Error: StatusCode Error", resInterface.Code)
+		log.Print("Send Auth Key Error: StatusCode Error", resInterface.Code)
 		return "", fmt.Errorf("ErrorCode: %v", resInterface.Code)
 	}
 	log.Println("Authentication Success")
@@ -46,7 +46,7 @@ func VerifyQQ(session Session, cfg Config) error {
 	var res structs.VerifyRespond
 	err := request.PostWithTargetRespond("/verify", verifyRequestBody, &res)
 	if err != nil || res.Code != constdata.Normal {
-		log.Fatal("Verify QQ Bot Error: ", err)
+		log.Print("Verify QQ Bot Error: ", err)
 		return err
 	}
 	log.Println("Verify QQ Success!")
