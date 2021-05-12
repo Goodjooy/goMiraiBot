@@ -14,12 +14,17 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, session Session, url url.URL) {
+type WSHolder struct {
+	Conn *websocket.Conn
+}
+
+func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, session Session, conn *WSHolder, url url.URL) {
 	var f message.MessageMapRespond
 	_, msgReader, err := msgSocket.NextReader()
 	if err != nil {
 		log.Fatal("Read Message | Get Message Failure: ", err)
-		go TryReDialWebSocket(EstablishMessageHandleWebSocket, 6, session, msgSocket, url)
+		cnn, _ := TryReDialWebSocket(EstablishMessageHandleWebSocket, 6, session, url)
+		conn.Conn = cnn
 		return
 	}
 	var data []byte
@@ -65,12 +70,13 @@ func MessageReaderHolder(done chan struct{},
 	reqMsg chan structs.Message,
 	session Session,
 	msgSocket *websocket.Conn,
-	url url.URL) {
+	url url.URL,
+	conn *WSHolder) {
 	//退出函数关闭阻塞挂起
 	defer close(done)
 
 	for {
-		MessageReader(msgSocket, reqMsg, session, url)
+		MessageReader(msgSocket, reqMsg, session, conn, url)
 	}
 }
 

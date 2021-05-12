@@ -5,7 +5,9 @@ import (
 	"goMiraiQQBot/messageHandle/interact"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/sourceHandle"
-	"goMiraiQQBot/messageHandle/structs"
+	mStruct "goMiraiQQBot/messageHandle/structs"
+	"goMiraiQQBot/request"
+	"goMiraiQQBot/request/structs"
 	"log"
 	"net/url"
 
@@ -22,7 +24,7 @@ type BotWsClient struct {
 
 	Done chan struct{}
 
-	msgGetChan chan structs.Message
+	msgGetChan chan mStruct.Message
 	msgReq     chan messagetargets.MessageTarget
 
 	config Config
@@ -31,7 +33,7 @@ type BotWsClient struct {
 func NewQQBotClient(configPath string) BotWsClient {
 	client := BotWsClient{
 		Done:       make(chan struct{}),
-		msgGetChan: make(chan structs.Message),
+		msgGetChan: make(chan mStruct.Message),
 		msgReq:     make(chan messagetargets.MessageTarget),
 	}
 
@@ -41,7 +43,7 @@ func NewQQBotClient(configPath string) BotWsClient {
 	return client
 }
 
-func (client *BotWsClient) Run(configPath string) error {
+func (client *BotWsClient) Run() error {
 	log.Print("Starting QQ Bot")
 	config := client.config
 
@@ -69,15 +71,15 @@ func (client *BotWsClient) Run(configPath string) error {
 	log.Print("Establish Websocket Connect To Bot")
 	client.rootURL = url.URL{Host: fmt.Sprintf("%v:%v", config.Server.Host, config.Server.Port)}
 
-	err = EstablishMessageHandleWebSocket(client.rootURL, session, client.msgSocket)
+	client.msgSocket, err = EstablishMessageHandleWebSocket(client.rootURL, session)
 	if err != nil {
 		log.Fatal("Init Bot Clent Faulure | Establish Websocket at `/message` : ", err)
 		return err
 	}
 
 	log.Print("Start Listen Bot Message")
-	go MessageReaderHolder(client.Done, client.msgGetChan, client.session, client.msgSocket, client.rootURL)
-	go MessageReaderHolder(client.Done, client.msgGetChan, client.session, client.msgSocket, client.rootURL)
+	go MessageReaderHolder(client.Done, client.msgGetChan, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
+	go MessageReaderHolder(client.Done, client.msgGetChan, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
 	log.Print("Bot Message Listener Started!")
 
 	//TODO: Event Handle
@@ -88,4 +90,35 @@ func (client *BotWsClient) Run(configPath string) error {
 	log.Print("Bot Message Send Channal Litener Started")
 
 	return nil
+}
+
+func (client *BotWsClient) Close() {
+	client.msgSocket.Close()
+	client.eventSocket.Close()
+}
+
+func (client *BotWsClient) GetDoneChan() chan struct{} {
+	return client.Done
+}
+
+func (client *BotWsClient) StopClient() {
+	close(client.msgGetChan)
+	close(client.msgReq)
+	close(client.Done)
+
+	log.Print("Release Session")
+	releaseSessionBody := structs.VerifyQQRequest{
+		QQ:         3628862306,
+		SessionKey: string(client.session),
+	}
+	var res structs.VerifyRespond
+
+	err := request.PostWithTargetRespond("/release", releaseSessionBody, &res)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("exit release session")
+
+	client.msgSocket.WriteMessage(websocket.TextMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 }
