@@ -41,6 +41,8 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
+	
+
 	//get session
 	var resInterface structs.AuthRespond
 	err := request.PostWithTargetRespond(
@@ -102,29 +104,32 @@ func main() {
 	messageReciver := func() {
 		defer close(done)
 
-		for {
+		LOOP: for {
+			
 			var f message.MessageMapRespond
 			_, info, err := socket.ReadMessage()
 			if err != nil {
 				log.Fatal("readMessageFatal: ", err)
-				return
+				goto LOOP
 			}
 			err = json.Unmarshal(info, &f.Data)
 			if err != nil {
 				log.Fatal("Unmarshal Json Failure", err)
-				continue
+				goto LOOP
 			}
 
 			msg, err := s.FromMessageRespondData(f)
 			if err != nil {
 				log.Fatal(err)
-				continue
+				goto LOOP
 			}
 
 			reqMessage <- msg
 			log.Print("Accept Message!")
 			log.Printf("%+v",f.Data)
 		}
+
+		
 	}
 
 	messageSender := func() {
