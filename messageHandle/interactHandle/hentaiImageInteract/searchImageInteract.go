@@ -1,6 +1,7 @@
 package hentaiimageinteract
 
 import (
+	"goMiraiQQBot/constdata"
 	datautil "goMiraiQQBot/dataUtil"
 	"goMiraiQQBot/messageHandle/interact"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
@@ -26,6 +27,11 @@ func NewHentaiImageSearchInteract() interact.ContextMessageInteract {
 
 func (HentaiImageSearchInteract) GetInitCommand() []string {
 	return []string{"s-Img", "搜图"}
+}
+func (HentaiImageSearchInteract) RespondSource() []constdata.MessageType {
+	return []constdata.MessageType{
+		constdata.GroupMessage,
+	}
 }
 
 func (h *HentaiImageSearchInteract) InitMessage(

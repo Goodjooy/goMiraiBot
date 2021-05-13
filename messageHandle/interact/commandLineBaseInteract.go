@@ -8,13 +8,14 @@ import (
 
 
 type SingleMessageInteract interface {
-	// GetCommandName 获取指令名称，用来创建映射关系
-	GetCommandName() []string
 	//GetUseage
 	GetUseage() string
 
+	// GetCommandName 获取指令名称，用来创建映射关系
+	GetCommandName() []string
 	//RespondSource
 	RespondSource() []constdata.MessageType
+
 	// EnterMessage 响应信息
 	EnterMessage(extraCmd datautil.MutliToOneMap, data structs.Message, repChan chan messagetargets.MessageTarget)
 }
@@ -28,6 +29,8 @@ type ContextMessageInteract interface {
 	GetUseage()string
 	//GetInitCommand
 	GetInitCommand()[]string
+	//RespondSource
+	RespondSource() []constdata.MessageType
 
 	//InitMessage 上下文交互创建时使用,初始化数据，响应消息
 	InitMessage(extraCmd datautil.MutliToOneMap,msg structs.Message,redChan chan messagetargets.MessageTarget)ContextInteract

@@ -61,3 +61,10 @@ const (
 	UploadVoice MessageSendPort = "/uploadVoice"
 	UploadFile  MessageSendPort = "/uploadFileAndSend"
 )
+
+type DatabaseName string
+
+var (
+	MYSQL  DatabaseName = "mysql"
+	SQLITE DatabaseName = "sqlite"
+)
