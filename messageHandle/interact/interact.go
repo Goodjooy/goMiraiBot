@@ -7,11 +7,13 @@ import (
 )
 
 type Interact interface {
+	Init()
 	// EnterMessage 响应信息
 	EnterMessage(extraCmd datautil.MutliToOneMap, data structs.Message, repChan chan messagetargets.MessageTarget)
 }
 
 type ContextInteract interface {
+	Init()
 	/*InitMessage 	
 		上下文交互创建时使用,初始化数据，响应消息
 		要求根据传递的数据将不完全初始化的响应器初始化完成

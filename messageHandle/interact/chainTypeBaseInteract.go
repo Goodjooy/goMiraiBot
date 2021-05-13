@@ -9,6 +9,7 @@ import (
 
 
 type ChainTypeInteract interface {
+	Init()
 	//GetUseage 获取使用
 	GetUseage() string
 	//GetActivateTypes 获取激活的chain类型
@@ -21,6 +22,7 @@ type ChainTypeInteract interface {
 }
 
 type ChainTypeContextInteract interface {
+	Init()
 	//GetUseage 获取命令使用方法
 	GetUseage()string
 	//GetActivateTypes 获取激活的chain类型

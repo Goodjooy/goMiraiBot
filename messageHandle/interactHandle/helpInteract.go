@@ -24,6 +24,9 @@ type HelpInteract struct {
 func NewHelpInteract() interact.SingleMessageInteract {
 	return HelpInteract{}
 }
+func (HelpInteract) Init() {
+
+}
 
 func (interact HelpInteract) GetCommandName() []string {
 	return []string{"help", "帮助", "功能"}
@@ -103,7 +106,7 @@ func (i HelpInteract) EnterMessage(
 					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())
 					return
 				}
-			}else if typeActive.Match(sourceName){
+			} else if typeActive.Match(sourceName) {
 				c, ok := interact.GetSingleInteract(cmdName)
 				if ok {
 					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())

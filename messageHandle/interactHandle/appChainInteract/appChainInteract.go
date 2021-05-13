@@ -17,6 +17,9 @@ type AppChainInteract struct {
 func NewAppChainInteract() interact.ChainTypeInteract {
 	return &AppChainInteract{}
 }
+func (*AppChainInteract) Init() {
+
+}
 
 //GetUseage 获取使用
 func (xml *AppChainInteract) GetUseage() string {
@@ -52,9 +55,9 @@ func (xml *AppChainInteract) EnterMessage(
 			repChan <- messagetargets.NewSingleTextGroupTarget(source.GroupId, fmt.Sprintf("failure to Transform XML|%v", err))
 		}
 	}
-	bodyMessage:=appInfo.Meta.Detial.Title
-	if len(bodyMessage)>64{
-		bodyMessage=bodyMessage[:64]+"……"
+	bodyMessage := appInfo.Meta.Detial.Title
+	if len(bodyMessage) > 64 {
+		bodyMessage = bodyMessage[:64] + "……"
 	}
 
 	respond := messagetargets.NewChainsGroupTarget(source.GroupId,

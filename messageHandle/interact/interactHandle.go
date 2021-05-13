@@ -7,9 +7,15 @@ import (
 	"goMiraiQQBot/messageHandle/structs"
 	"log"
 )
+func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget, c BotQQIdGeter) {
+	cfg = c
 
+	//register interacter
+	go acceptMessage(msgChan, msgRes)
+	go acceptMessage(msgChan, msgRes)
+}
 func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
-	for {
+	for{
 		select {
 		case data, ok := (<-msgChan):
 			if ok {

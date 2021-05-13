@@ -16,9 +16,12 @@ type AboutInteract struct {
 func NewAboutInteract() interact.SingleMessageInteract {
 	return AboutInteract{}
 }
+func (AboutInteract) Init() {
+
+}
 
 func (AboutInteract) GetCommandName() []string {
-	return []string{"about","关于"}
+	return []string{"about", "关于"}
 }
 func (AboutInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
@@ -31,18 +34,18 @@ func (i AboutInteract) EnterMessage(
 	data structs.Message,
 	repChan chan messagetargets.MessageTarget) {
 
-		var msg ,_= sourceHandle.GetGoupSoucreMessage(data.Source)
-	
-		var da=messagetargets.NewGroupTarget(msg.GroupId,[]request.H{
-			{
-				"type":string(constdata.Plain),
-				"text":"ForzenStringBot 是由凊弦凝绝制作的以Mirai为框架的QQ萝卜子",
-			}})
+	var msg, _ = sourceHandle.GetGoupSoucreMessage(data.Source)
 
-		repChan<-da
-	}
+	var da = messagetargets.NewGroupTarget(msg.GroupId, []request.H{
+		{
+			"type": string(constdata.Plain),
+			"text": "ForzenStringBot 是由凊弦凝绝制作的以Mirai为框架的QQ萝卜子",
+		}})
 
-	func (AboutInteract)	GetUseage()string{
-		return "#about|#关于 : 返回当前机器人的简介\n"+
+	repChan <- da
+}
+
+func (AboutInteract) GetUseage() string {
+	return "#about|#关于 : 返回当前机器人的简介\n" +
 		"额外指令：无"
-	}
+}

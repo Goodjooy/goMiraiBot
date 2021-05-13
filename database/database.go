@@ -26,6 +26,7 @@ func InitDatabaseConnect(dbOpen gorm.Dialector) *gorm.DB {
 		log.Fatalf("Conntect To DataBase Fauilure : %v", err)
 	}
 	database = db
+	isAble=true
 	return db
 }
 
@@ -37,4 +38,11 @@ func InitMysqlConnect(dbCfg databaseConfig) *gorm.DB {
 		dbCfg.GetDBPort(),
 		dbCfg.GetDBName())
 	return InitDatabaseConnect(mysql.Open(dsn))
+}
+
+
+func Init(dbCfg databaseConfig){
+	db:=InitMysqlConnect(dbCfg)
+
+	db.AutoMigrate(dbModels...)
 }

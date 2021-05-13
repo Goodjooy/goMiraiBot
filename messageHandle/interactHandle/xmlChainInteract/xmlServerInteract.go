@@ -17,6 +17,9 @@ type XmlChainInteract struct {
 func NewXmlChainInteract() interact.ChainTypeInteract {
 	return &XmlChainInteract{}
 }
+func (*XmlChainInteract) Init() {
+
+}
 
 //GetUseage 获取使用
 func (xml *XmlChainInteract) GetUseage() string {

@@ -24,6 +24,9 @@ type HentaiImageSearchInteract struct {
 func NewHentaiImageSearchInteract() interact.ContextMessageInteract {
 	return &HentaiImageSearchInteract{done: false, imageUrl: ""}
 }
+func (*HentaiImageSearchInteract) Init() {
+
+}
 
 func (HentaiImageSearchInteract) GetInitCommand() []string {
 	return []string{"s-Img", "搜图"}

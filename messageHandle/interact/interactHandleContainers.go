@@ -2,8 +2,6 @@ package interact
 
 import (
 	"fmt"
-	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
-	"goMiraiQQBot/messageHandle/structs"
 	"strings"
 	"sync"
 
@@ -166,13 +164,7 @@ func GetContextInteract(key string) (ContextInteractConstruct, bool) {
 	return v, ok
 }
 
-func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget, c BotQQIdGeter) {
-	cfg = c
 
-	//register interacter
-	go acceptMessage(msgChan, msgRes)
-	go acceptMessage(msgChan, msgRes)
-}
 
 func AddSingleInteract(handle SingleInteractConstruct) {
 	keys := handle().GetCommandName()
@@ -181,6 +173,7 @@ func AddSingleInteract(handle SingleInteractConstruct) {
 		key = strings.ToLower(key)
 		singleInteract[key] = handle
 	}
+	handle().Init()
 
 }
 func AddContextInteract(handle ContextInteractConstruct) {
@@ -190,6 +183,7 @@ func AddContextInteract(handle ContextInteractConstruct) {
 		key = strings.ToLower(key)
 		contextInteract[key] = handle
 	}
+	handle().Init()
 }
 
 func AddChainSingleInteract(handle ChainSingleInteractConstruct) {
@@ -199,7 +193,7 @@ func AddChainSingleInteract(handle ChainSingleInteractConstruct) {
 		k := strings.ToLower(key.String())
 		chainSingleInteact[k] = handle
 	}
-
+	handle().Init()
 }
 func AddChainContextInteract(handle ChainContextInteractConstruct) {
 	keys := handle().GetActivateType()
@@ -208,4 +202,5 @@ func AddChainContextInteract(handle ChainContextInteractConstruct) {
 		k := strings.ToLower(key.String())
 		chainContextInteract[k] = handle
 	}
+	handle().Init()
 }
