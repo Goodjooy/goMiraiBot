@@ -5,9 +5,8 @@ import (
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/sourceHandle"
 	"goMiraiQQBot/messageHandle/structs"
+	"log"
 )
-
-
 
 func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
 	for {
@@ -20,16 +19,11 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 					var d sourceHandle.GroupMessage = source.GetMetaInformation().(sourceHandle.GroupMessage)
 
 					//上下文环境持续，最高优先级
-					if group, ok := activateContextInteract[d.GroupId]; ok {
-						if context, ok := group[d.UserId]; ok {
-							context.NextMessage(data, msgRes)
-							//check done
-							if context.IsDone() {
-								activateMut.Lock()
-								delete(group, d.UserId)
-								activateMut.Unlock()
-							}
-							continue
+					if context, err := activateContextInteract.Get(d.GroupId, d.UserId); err == nil {
+						context.NextMessage(data, msgRes)
+						//check done
+						if context.IsDone() {
+							activateContextInteract.Delete(d.GroupId, d.UserId)
 						}
 					}
 					//激活上下文，第二优先级
@@ -42,21 +36,17 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 								data,
 								msgRes,
 							)
-
-							group, ok := activateContextInteract[d.GroupId]
-							if !ok {
-								group = make(GroupMemberContext)
-								activateMut.Lock()
-								activateContextInteract[d.GroupId] = group
-								activateMut.Unlock()
+							err := activateContextInteract.Put(d.GroupId, d.UserId, c)
+							if err != nil {
+								log.Printf("Add New Context Faulre: %v", err)
+								//TODO: error Channal
+								msgRes <- messagetargets.NewSingleTextGroupTarget(d.GroupId, "新建上下文失败")
 							}
-							activateMut.Lock()
-							group[d.UserId] = c
-							activateMut.Unlock()
-							continue
 						} else if signle, ok := singleInteract[cmd.mainCmd]; ok {
 							signle().EnterMessage(cmd.extraCmd, data, msgRes)
 							continue
+						} else {
+							msgRes <- messagetargets.NewSingleTextGroupTarget(d.GroupId, "指令未找到！")
 						}
 					}
 					chainCmd, ok := chainStructGet(msgChain)
@@ -67,16 +57,12 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 								data,
 								msgRes,
 							)
-							group, ok := activateContextInteract[d.GroupId]
-							if !ok {
-								group = make(GroupMemberContext)
-								activateMut.Lock()
-								activateContextInteract[d.GroupId] = group
-								activateMut.Unlock()
+							err := activateContextInteract.Put(d.GroupId, d.UserId, c)
+							if err != nil {
+								log.Printf("Add New Context Faulre: %v", err)
+								//TODO: error Channal
+								msgRes <- messagetargets.NewSingleTextGroupTarget(d.GroupId, "新建上下文失败")
 							}
-							activateMut.Lock()
-							group[d.UserId] = c
-							activateMut.Unlock()
 						} else if signle, ok := chainSingleInteact[chainCmd.mainCmd]; ok {
 							signle().EnterMessage(cmd.extraCmd, data, msgRes)
 						}

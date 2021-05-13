@@ -2,6 +2,7 @@ package xmlchaininteract
 
 import (
 	"encoding/xml"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -20,7 +21,24 @@ func loadXML(xmlSource string) (msg, error) {
 }
 
 func removeURLParams(URL string)string{
-	rootURL:= strings.Split(URL,"?")[0]
-	transedURL:=strings.Replace(rootURL,`\/`,"/",-1)
+	//rootURL:=URL
+	URL=idCapture(URL)
+	transedURL:=strings.Replace(URL,`\/`,"/",-1)
 	return transedURL
+}
+
+func idCapture(URL string)string{
+	var reValue url.Values=make(url.Values)
+	data,_:=url.Parse(URL)
+
+	params:=data.RawQuery
+
+	values,_:=url.ParseQuery(params)
+
+	if v,ok:=values["id"];ok{
+		reValue["id"]=v
+	}
+	data.RawQuery=reValue.Encode()
+
+return data.String()
 }

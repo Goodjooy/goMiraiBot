@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"goMiraiQQBot/constdata"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/structs"
@@ -46,7 +47,9 @@ func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, sessi
 		return
 	}
 
-	log.Printf("Read Message | Accept Message Success! Source: \n%+v", msg.Source)
+	log.Printf("Read Message | Accept Message Success! Source: \n%+v\n`%+v`",
+		msg.Source,
+		chainRander(msg.ChainInfoList))
 	reqMsg <- msg
 
 }
@@ -56,7 +59,7 @@ func MessageSender(data messagetargets.MessageTarget, session Session) {
 	var result message.MessageSendRespond
 	err := request.PostWithTargetRespond(string(data.GetTargetPort()), data.GetSendContain(string(session)), &result)
 	if err != nil {
-		log.Printf ("Send Message Failure: %v", err)
+		log.Printf("Send Message Failure: %v", err)
 		return
 	}
 	if result.Code != constdata.Normal {
@@ -92,4 +95,19 @@ func MessageSenderHolder(done chan struct{}, targetChan chan messagetargets.Mess
 			}
 		}
 	}
+}
+
+func chainRander(chains []structs.MessageChainInfo) string {
+	var info string
+
+	for _, v := range chains {
+		if v.MessageType == constdata.At {
+			info += fmt.Sprintf("[AT-%v-%v] ", uint64(v.Data["target"].(float64)), v.Data["display"].(string))
+		} else if v.MessageType == constdata.Plain {
+			info += v.Data["text"].(string)
+		} else {
+			info += fmt.Sprintf("[TYPE:%v]", v.MessageType)
+		}
+	}
+	return info
 }
