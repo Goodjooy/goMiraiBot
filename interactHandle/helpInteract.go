@@ -43,7 +43,7 @@ func (i HelpInteract) EnterMessage(
 	repChan chan messagetargets.MessageTarget) {
 	var msg, _ = sourceHandle.GetGoupSoucreMessage(data.Source)
 
-	if len(extraCmd) == 0 {
+	if extraCmd.IsEmpty() {
 		var d []request.H
 
 		d = append(d, request.H{"type": string(constdata.Plain),

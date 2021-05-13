@@ -25,3 +25,6 @@ func (t TargetValues) Match(value string) bool {
 func (t TargetValues) GetSign() string {
 	return t[0]
 }
+func(t TargetValues)GetAll()[]string{
+	return t
+}

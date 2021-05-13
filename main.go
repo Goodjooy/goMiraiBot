@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"goMiraiQQBot/client"
+	"goMiraiQQBot/interactHandle"
+	appchaininteract "goMiraiQQBot/interactHandle/appChainInteract"
+	xmlchaininteract "goMiraiQQBot/interactHandle/xmlChainInteract"
 	"goMiraiQQBot/messageHandle/interact"
-	"goMiraiQQBot/messageHandle/interactHandle"
-	appchaininteract "goMiraiQQBot/messageHandle/interactHandle/appChainInteract"
-	xmlchaininteract "goMiraiQQBot/messageHandle/interactHandle/xmlChainInteract"
 	"log"
 	"os"
 	"os/signal"
@@ -16,7 +16,7 @@ import (
 func main() {
 
 	flag.Parse()
-	log.SetFlags(1)
+	log.SetFlags(0)
 
 	//close workser
 	interrupt := make(chan os.Signal, 1)
@@ -56,5 +56,6 @@ func main() {
 			}
 		}
 	}
-	END:return
+END:
+	return
 }

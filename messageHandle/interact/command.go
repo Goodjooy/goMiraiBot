@@ -11,19 +11,16 @@ import (
 
 var cmdPattern = regexp.MustCompile(`^(#\s*(\S+))\s*`)
 var extraCmdPattern = regexp.MustCompile(`(?:\s)(\S+)[=:：](\S+)`)
+var extraNoNameCmdPattern = regexp.MustCompile(`(?:\s)(\S+)`)
 
-type command struct {
+type Command struct {
 	mainCmd  string
 	extraCmd datautil.MutliToOneMap
 }
 
-type BotQQIdGeter interface {
-	GetQQId()uint64
-}
-
-func commandGet(msgChain []structs.MessageChainInfo) (command, bool) {
-	cmd := command{}
-	msg := commandLoad(msgChain)
+func CommandGet(msgChain []structs.MessageChainInfo, botQQ uint64) (Command, bool) {
+	cmd := Command{}
+	msg := commandLoad(msgChain, botQQ)
 	//以#开头,有命令
 	if strings.HasPrefix(msg, "#") {
 		matchResult := cmdPattern.FindStringSubmatch(msg)
@@ -34,7 +31,12 @@ func commandGet(msgChain []structs.MessageChainInfo) (command, bool) {
 		extraMatch := extraCmdPattern.FindAllStringSubmatch(extraCmd, -1)
 		cmd.extraCmd = datautil.NewMutliToOneMap()
 		for _, v := range extraMatch {
-			cmd.extraCmd[v[1]] = v[2]
+			cmd.extraCmd.Put(v[1], v[2])
+		}
+
+		extraNoNameCmd := extraNoNameCmdPattern.FindAllStringSubmatch(extraCmd, -1)
+		for _, v := range extraNoNameCmd {
+			cmd.extraCmd.PutNoName(v[1])
 		}
 
 		return cmd, true
@@ -42,11 +44,11 @@ func commandGet(msgChain []structs.MessageChainInfo) (command, bool) {
 	return cmd, false
 }
 
-func commandLoad(msgCHain []structs.MessageChainInfo) string {
+func commandLoad(msgCHain []structs.MessageChainInfo, botQQ uint64) string {
 	var cmd string
 	if msgCHain[0].MessageType == constdata.At {
 		qqId := uint64(msgCHain[0].Data["target"].(float64))
-		if qqId == uint64(cfg.GetQQId()) {
+		if qqId == uint64(botQQ) {
 			cmd += "#"
 			msgCHain = msgCHain[1:]
 		}
@@ -58,9 +60,4 @@ func commandLoad(msgCHain []structs.MessageChainInfo) string {
 		}
 	}
 	return cmd
-}
-
-func atCommandLoad(msgChain []structs.MessageChainInfo) bool {
-	//TODO: 监控是否@自己
-	return false
 }

@@ -7,6 +7,11 @@ import (
 	"goMiraiQQBot/messageHandle/structs"
 	"log"
 )
+
+type BotQQIdGeter interface {
+	GetQQId() uint64
+}
+
 func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget, c BotQQIdGeter) {
 	cfg = c
 
@@ -34,7 +39,7 @@ func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.Mess
 					}
 					//激活上下文，第二优先级
 					msgChain := data.ChainInfoList
-					cmd, ok := commandGet(msgChain)
+					cmd, ok := CommandGet(msgChain,cfg.GetQQId())
 					if ok {
 						if context, ok := contextInteract[cmd.mainCmd]; ok {
 							var c = context().InitMessage(
