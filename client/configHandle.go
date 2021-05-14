@@ -1,6 +1,7 @@
 package client
 
 import (
+	"goMiraiQQBot/constdata"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,11 +10,12 @@ import (
 )
 
 type Config struct {
-	Server Server `yaml:"server"`
-	Bot    Bot    `yaml:"bot"`
+	Server   Server   `yaml:"server"`
+	Bot      Bot      `yaml:"bot"`
+	Database Database `yaml:"database"`
 }
 
-func (cfg Config)GetQQId()uint64{
+func (cfg Config) GetQQId() uint64 {
 	return uint64(cfg.Bot.QQ)
 }
 
@@ -23,8 +25,48 @@ type Server struct {
 }
 
 type Bot struct {
-	QQ      uint64   `yaml:"QQ"`
+	QQ      uint64 `yaml:"QQ"`
 	AuthKey string `yaml:"authKey"`
+}
+type Database struct {
+	Eable bool `yaml:"enable"`
+
+	Mode   constdata.DatabaseMode `yaml:"mode"`
+	DbType string                 `yaml:"db"`
+
+	DbName     string `yaml:"dbName"`
+	DbUser     string `yaml:"dbUser"`
+	DbPassword string `yaml:"dbPassword"`
+
+	DbHost string `yaml:"dbHost"`
+	DbPort uint   `yaml:"dbPort"`
+}
+
+func (cfg Config) IsEnable() bool {
+	return cfg.Database.Eable
+}
+func (cfg Config) DbType() string {
+	return cfg.Database.DbType
+}
+func (cfg Config) DbMode() constdata.DatabaseMode {
+	return cfg.Database.Mode
+}
+
+func (cfg Config) GetDBUserName() string {
+	return cfg.Database.DbUser
+}
+func (cfg Config) GetDBPassword() string {
+	return cfg.Database.DbPassword
+}
+func (cfg Config) GetDBName() string {
+	return cfg.Database.DbName
+}
+
+func (cfg Config) GetDBHost() string {
+	return cfg.Database.DbHost
+}
+func (cfg Config) GetDBPort() uint {
+	return cfg.Database.DbPort
 }
 
 func LoadConfig(configPath string) Config {

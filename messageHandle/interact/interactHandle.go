@@ -11,8 +11,11 @@ type BotQQIdGeter interface {
 	GetQQId() uint64
 }
 
-func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget, c BotQQIdGeter) {
-	cfg = c
+func SetCFG(c BotQQIdGeter){
+	cfg=c
+}
+
+func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
 
 	MessageInteract.setLock()
 	ChainInteract.setLock()

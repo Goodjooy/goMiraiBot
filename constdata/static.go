@@ -68,3 +68,11 @@ var (
 	MYSQL  DatabaseName = "mysql"
 	SQLITE DatabaseName = "sqlite"
 )
+
+type DatabaseMode string
+
+var (
+	UPDATE DatabaseMode = "update"
+	CREATE DatabaseMode = "create"
+	NONE   DatabaseMode = "none"
+)

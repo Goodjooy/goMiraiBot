@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"goMiraiQQBot/database"
 	"goMiraiQQBot/messageHandle/interact"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/sourceHandle"
@@ -12,6 +13,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 )
 
 type BotWsClient struct {
@@ -28,6 +30,8 @@ type BotWsClient struct {
 	msgReq     chan messagetargets.MessageTarget
 
 	config Config
+
+	database *gorm.DB
 }
 
 func NewQQBotClient(configPath string) BotWsClient {
@@ -40,7 +44,13 @@ func NewQQBotClient(configPath string) BotWsClient {
 	config := LoadConfig(configPath)
 	client.config = config
 
+	interact.SetCFG(config)
+
 	return client
+}
+
+func (client *BotWsClient) EnableDB() {
+	database.Init(client.config)
 }
 
 func (client *BotWsClient) Run() error {
@@ -52,7 +62,7 @@ func (client *BotWsClient) Run() error {
 	log.Print("Souce Handle Init Success!")
 
 	log.Print("Init Interact Handle")
-	interact.InitInteractHandle(client.msgGetChan, client.msgReq, client.config)
+	interact.InitInteractHandle(client.msgGetChan, client.msgReq)
 	log.Print("Interact Handle Init Success")
 
 	session, err := AuthQQKey(config)

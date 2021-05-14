@@ -18,8 +18,8 @@ func GetDebugDB() *gorm.DB {
 	return database.Debug()
 }
 
-func AsignDBModel(model interface{}) {
-	dbModels = append(dbModels, model)
+func AsignDBModel(model... interface{}) {
+	dbModels = append(dbModels, model...)
 }
 
 

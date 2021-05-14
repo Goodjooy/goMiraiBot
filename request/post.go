@@ -46,7 +46,7 @@ func PostWithTargetRespond(path string, body interface{},resStructPtr interface{
 	
 	err = json.Unmarshal(respondByte, &resStructPtr)
 	if err != nil {
-		return  errors.New("Transfrom Respond Body To Json Fail : " + err.Error())
+		return  errors.New("Transfrom Respond Body To Json Fail : " + err.Error()+"\n"+ string(respondByte))
 	}
 
 	if res.StatusCode != http.StatusOK {

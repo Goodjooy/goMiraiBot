@@ -117,3 +117,7 @@ var MessageInteract ConstructMap=NewContructMap()
 var ChainInteract ConstructMap=NewContructMap()
 
 var cfg BotQQIdGeter
+
+func GetBotQQ()uint64{
+	return cfg.GetQQId()
+}

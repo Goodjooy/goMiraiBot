@@ -85,6 +85,7 @@ func MessageReaderHolder(done chan struct{},
 	for {
 		ok := MessageReader(msgSocket, reqMsg, session, conn, url)
 		if !ok {
+			done<-struct{}{}
 			return
 		}
 	}
