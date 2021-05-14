@@ -4,3 +4,5 @@ temp/**
 config.yml
 
 tesk.go
+
+__debug_bin

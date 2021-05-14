@@ -1,7 +1,6 @@
 package interact
 
 import (
-	"goMiraiQQBot/constdata"
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/sourceHandle"
 	"goMiraiQQBot/messageHandle/structs"
@@ -15,71 +14,82 @@ type BotQQIdGeter interface {
 func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget, c BotQQIdGeter) {
 	cfg = c
 
+	MessageInteract.setLock()
+	ChainInteract.setLock()
 	//register interacter
 	go acceptMessage(msgChan, msgRes)
 	go acceptMessage(msgChan, msgRes)
 }
 func acceptMessage(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
-	for{
+	for {
 		select {
 		case data, ok := (<-msgChan):
 			if ok {
 				source := data.Source
-				//信息类型为群消息
-				if source.GetSource() == constdata.GroupMessage {
-					var d sourceHandle.GroupMessage = source.GetMetaInformation().(sourceHandle.GroupMessage)
 
-					//上下文环境持续，最高优先级
-					if context, err := activateContextInteract.Get(d.GroupId, d.UserId); err == nil {
-						context.NextMessage(data, msgRes)
-						//check done
-						if context.IsDone() {
-							activateContextInteract.Delete(d.GroupId, d.UserId)
-						}
-					}
-					//激活上下文，第二优先级
-					msgChain := data.ChainInfoList
-					cmd, ok := CommandGet(msgChain,cfg.GetQQId())
-					if ok {
-						if context, ok := contextInteract[cmd.mainCmd]; ok {
-							var c = context().InitMessage(
-								cmd.extraCmd,
-								data,
-								msgRes,
-							)
-							err := activateContextInteract.Put(d.GroupId, d.UserId, c)
-							if err != nil {
-								log.Printf("Add New Context Faulre: %v", err)
-								//TODO: error Channal
-								msgRes <- messagetargets.NewSingleTextGroupTarget(d.GroupId, "新建上下文失败")
-							}
-						} else if signle, ok := singleInteract[cmd.mainCmd]; ok {
-							signle().EnterMessage(cmd.extraCmd, data, msgRes)
-							continue
-						} else {
-							msgRes <- messagetargets.NewSingleTextGroupTarget(d.GroupId, "指令未找到！")
-						}
-					}
-					chainCmd, ok := chainStructGet(msgChain)
-					if ok {
-						if context, ok := chainContextInteract[chainCmd.mainCmd]; ok {
-							var c = context().InitMessage(
-								cmd.extraCmd,
-								data,
-								msgRes,
-							)
-							err := activateContextInteract.Put(d.GroupId, d.UserId, c)
-							if err != nil {
-								log.Printf("Add New Context Faulre: %v", err)
-								//TODO: error Channal
-								msgRes <- messagetargets.NewSingleTextGroupTarget(d.GroupId, "新建上下文失败")
-							}
-						} else if signle, ok := chainSingleInteact[chainCmd.mainCmd]; ok {
-							signle().EnterMessage(cmd.extraCmd, data, msgRes)
-						}
-					}
+				//上下文环境持续，最高优先级
+				status := contiuneContextHandle(source, data, msgRes)
+				if status {
+					continue
+				}
+				// 命令形式上下文
+				msgChain := data.ChainInfoList
+				cmd, ok := CommandGet(msgChain, cfg.GetQQId())
+				if ok {
+					interactActivateHandle(cmd, source, data, msgRes, true, MessageInteract)
+					continue
+				}
+
+				//类型形式上下文
+				chainCmd, ok := chainStructGet(msgChain)
+				if ok {
+					interactActivateHandle(chainCmd, source, data, msgRes, false, ChainInteract)
+					continue
 				}
 			}
 		}
 	}
+}
+
+func interactActivateHandle(cmd Command,
+	source sourceHandle.MessageSource,
+	data structs.Message,
+	msgRes chan messagetargets.MessageTarget,
+	cmdNfoundMsg bool,
+	constructContainer ConstructMap) {
+
+	if context, err := constructContainer.GetContextInteract(cmd.mainCmd, source.GetSource()); err == nil {
+		var c = context.InitMessage(
+			cmd.extraCmd,
+			data,
+			msgRes,
+		)
+		err := activateContextInteract.Put(source.GetGroupID(), source.GetSenderID(), c)
+		if err != nil {
+			log.Printf("Add New Context Fauilure: %v", err)
+			msgRes <- messagetargets.NewSingleTextGroupTarget(source.GetSenderID(), "新建上下文失败")
+		}
+	} else if signle, err := constructContainer.GetSingleInteract(cmd.mainCmd, source.GetSource()); err == nil {
+		signle.EnterMessage(cmd.extraCmd, data, msgRes)
+	} else {
+		if cmdNfoundMsg {
+			msgRes <- messagetargets.NewSingleTextGroupTarget(source.GetGroupID(), "指令未找到！")
+		}
+	}
+}
+
+func contiuneContextHandle(
+	source sourceHandle.MessageSource,
+	data structs.Message,
+	msgRes chan messagetargets.MessageTarget,
+) bool {
+	if context, err := activateContextInteract.Get(source.GetGroupID(), source.GetSenderID()); err == nil {
+		context.NextMessage(data, msgRes)
+		//check done
+		if context.IsDone() {
+			activateContextInteract.Delete(source.GetGroupID(), source.GetSenderID())
+		}
+		return true
+	}
+	return false
 }

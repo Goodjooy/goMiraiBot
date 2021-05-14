@@ -50,13 +50,13 @@ func searchHandle(count int,
 
 	crsf, err := getApiCrsfToken()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		resChan <- messagetargets.NewSingleTextGroupTarget(groupId, fmt.Sprintf("获取搜图token失败: %v", err))
 		return
 	}
 	results, err := postForm(crsf, imageURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		resChan <- messagetargets.NewSingleTextGroupTarget(groupId, fmt.Sprintf("发起图片搜索失败：%v", err))
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"goMiraiQQBot/client"
 	"goMiraiQQBot/interactHandle"
 	appchaininteract "goMiraiQQBot/interactHandle/appChainInteract"
+	hentaiimageinteract "goMiraiQQBot/interactHandle/hentaiImageInteract"
 	xmlchaininteract "goMiraiQQBot/interactHandle/xmlChainInteract"
 	"goMiraiQQBot/messageHandle/interact"
 	"log"
@@ -27,13 +28,13 @@ func main() {
 	defer client.StopClient()
 	defer client.Close()
 
-	interact.AddSingleInteract(interactHandle.NewHelpInteract)
-	interact.AddSingleInteract(interactHandle.NewAboutInteract)
+	interact.MessageInteract.AddSingleConstruct(interactHandle.NewHelpInteract)
+	interact.MessageInteract.AddSingleConstruct(interactHandle.NewAboutInteract)
 
-	//interact.AddContextInteract(hentaiimageinteract.NewHentaiImageSearchInteract)
+	interact.MessageInteract.AddContextConstruct(hentaiimageinteract.NewHentaiImageSearchInteract)
 
-	interact.AddChainSingleInteract(xmlchaininteract.NewXmlChainInteract)
-	interact.AddChainSingleInteract(appchaininteract.NewAppChainInteract)
+	interact.ChainInteract.AddSingleConstruct(xmlchaininteract.NewXmlChainInteract)
+	interact.ChainInteract.AddSingleConstruct(appchaininteract.NewAppChainInteract)
 
 	//load message
 	err := client.Run()

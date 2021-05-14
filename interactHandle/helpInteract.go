@@ -7,21 +7,26 @@ import (
 	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
 	"goMiraiQQBot/messageHandle/sourceHandle"
 	"goMiraiQQBot/messageHandle/structs"
-	"goMiraiQQBot/request"
 	"strings"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
-	single     = datautil.NewTargetValues("single", "单次", "单次交互", "单独", "一次性交互")
-	context    = datautil.NewTargetValues("context", "上下文", "上下文交互", "语境", "语境交互")
+	command    = datautil.NewTargetValues("command", "指令", "命令", "cmd", "指令型")
 	typeActive = datautil.NewTargetValues("type", "信息类型", "类型")
+)
+
+var (
+	cmd    = datautil.NewTargetValues("name", "指令", "命令")
+	source = datautil.NewTargetValues("type", "来源", "类型")
 )
 
 //帮助功能，用于显示全部命令
 type HelpInteract struct {
 }
 
-func NewHelpInteract() interact.SingleMessageInteract {
+func NewHelpInteract() interact.FullSingleInteract {
 	return HelpInteract{}
 }
 func (HelpInteract) Init() {
@@ -34,6 +39,7 @@ func (interact HelpInteract) GetCommandName() []string {
 func (interact HelpInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
 		constdata.GroupMessage,
+		constdata.FriendMessage,
 	}
 }
 
@@ -41,84 +47,24 @@ func (i HelpInteract) EnterMessage(
 	extraCmd datautil.MutliToOneMap,
 	data structs.Message,
 	repChan chan messagetargets.MessageTarget) {
-	var msg, _ = sourceHandle.GetGoupSoucreMessage(data.Source)
 
+	extraCmd.SetNoNameCmdOrder(cmd, source)
+	var target messagetargets.MessageTarget
 	if extraCmd.IsEmpty() {
-		var d []request.H
-
-		d = append(d, request.H{"type": string(constdata.Plain),
-			"text": "收到信息：帮助\n"})
-
-		d = append(d, request.H{
-			"type": string(constdata.Plain),
-			"text": "单次交互命令:\n",
-		})
-
-		for _, v := range interact.GetSingleCommand() {
-			d = append(d, request.H{
-				"type": string(constdata.Plain),
-				"text": " #" + v + "\n",
-			})
-		}
-
-		d = append(d, request.H{
-			"type": string(constdata.Plain),
-			"text": "上下文交互命令\n",
-		})
-
-		for _, v := range interact.GetContextCommand() {
-			d = append(d, request.H{
-				"type": string(constdata.Plain),
-				"text": " # " + v + "\n",
-			})
-		}
-
-		d = append(d, request.H{
-			"type": string(constdata.Plain),
-			"text": "信息类型单次响应\n",
-		})
-
-		for _, v := range interact.GetChainSingleCommand() {
-			d = append(d, request.H{
-				"type": string(constdata.Plain),
-				"text": "类型： " + v + "\n",
-			})
-		}
-
-		var da = messagetargets.NewGroupTarget(msg.GroupId, d)
-
-		repChan <- da
+		target = getAllCmd(data.Source)
 	} else {
-		cmdName, nok := extraCmd.Get("name", "指令", "命令")
+		cmdName, nok := extraCmd.Get(cmd...)
 		cmdName = strings.ToLower(cmdName)
-		sourceName, _ := extraCmd.GetWithDefault("single", "type", "来源", "类型")
+		sourceName, _ := extraCmd.GetWithDefault(command.GetSign(), source...)
 
 		if nok {
-			if single.Match(sourceName) {
-				c, ok := interact.GetSingleInteract(cmdName)
-				if ok {
-					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())
-					return
-				}
-			} else if context.Match(sourceName) {
-				c, ok := interact.GetContextInteract(cmdName)
-				if ok {
-					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())
-					return
-				}
-			} else if typeActive.Match(sourceName) {
-				c, ok := interact.GetSingleInteract(cmdName)
-				if ok {
-					repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, c().GetUseage())
-					return
-				}
-			}
-			repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, "指令未找到！")
-			return
+			target = getTargetCmd(sourceName, cmdName, data.Source)
+		} else {
+			rep := messagetargets.SourceTarget(data.Source, structs.NewTextChain("指令不完整！name 和 type 要同时指定"))
+			target = rep
 		}
-		repChan <- messagetargets.NewSingleTextGroupTarget(msg.GroupId, "指令不完整！name 和 type 要同时指定")
-		return
 	}
+	repChan <- target
 }
 
 func (HelpInteract) GetUseage() string {
@@ -126,4 +72,66 @@ func (HelpInteract) GetUseage() string {
 		"额外指令：\n" +
 		" name|指令|命令=[指令名称] \n  -> 标记选择的指令名称\n" +
 		" type|来源|类型=[single|context] \n  -> 选择指令来源【单次交互|上下文交互】"
+}
+
+func cmdString(prefix, sep string) []structs.MessageChainInfo {
+	var d []structs.MessageChainInfo
+
+	var lastCmdUUID uuid.UUID
+	var start bool = false
+
+	for _, v := range interact.MessageInteract.GetAllCmdSet() {
+		if start && lastCmdUUID == v.GetUUID() {
+			continue
+		}
+		var supportCmd string
+
+		supportCmd += (prefix + " ")
+		for _, c := range v.GetCmds() {
+			supportCmd += (c + " " + sep + " ")
+		}
+		supportCmd = supportCmd[:len(supportCmd)-len(sep)]
+
+		supportCmd += "\n"
+		d = append(d, structs.NewTextChain(supportCmd))
+
+		start = true
+		lastCmdUUID = v.GetUUID()
+	}
+	return d
+}
+
+func getAllCmd(source sourceHandle.MessageSource) messagetargets.MessageTarget {
+	var d []structs.MessageChainInfo
+
+	d = append(d, structs.NewTextChain("指令交互命令：\n"))
+
+	d = append(d, cmdString("#", "|")...)
+
+	d = append(d, structs.NewTextChain("信息类型响应\n"))
+
+	d = append(d, cmdString("", "|")...)
+
+	da := messagetargets.SourceTarget(source, d...)
+
+	return da
+}
+
+func getTargetCmd(sourceName, cmdName string, source sourceHandle.MessageSource) messagetargets.MessageTarget {
+	if command.Match(sourceName) {
+		c, ok := interact.MessageInteract.GetSideInfoFromCmd(cmdName)
+		if ok {
+			rep := messagetargets.SourceTarget(source,
+				structs.NewTextChain(c.GetUseage()))
+			return rep
+		}
+	} else if typeActive.Match(sourceName) {
+		c, ok := interact.ChainInteract.GetSideInfoFromCmd(cmdName)
+		if ok {
+			rep := messagetargets.SourceTarget(source, structs.NewTextChain(c.GetUseage()))
+			return rep
+		}
+	}
+	rep := messagetargets.SourceTarget(source, structs.NewTextChain("指令未找到！"))
+	return rep
 }

@@ -22,7 +22,7 @@ func (c *MutliToOneMap) PutNoName(value string) {
 }
 func (c *MutliToOneMap) SetNoNameCmdOrder(cmdNames ...TargetValues) {
 	var index = 0
-	for _, v := range cmdNames {
+	for _, v := range cmdNames { 
 		_, ok := c.Get(v...)
 		//没找到指令
 		if !ok && index < len(c.noNameList) {
@@ -51,8 +51,4 @@ func (c *MutliToOneMap) GetWithDefault(defaultValue string, keys ...string) (str
 		return v, ok
 	}
 	return defaultValue, false
-}
-
-func (c *MutliToOneMap) SetNoNameOrder() {
-	//TODO:
 }

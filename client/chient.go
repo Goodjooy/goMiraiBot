@@ -115,7 +115,7 @@ func (client *BotWsClient) StopClient() {
 
 	err := request.PostWithTargetRespond("/release", releaseSessionBody, &res)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("send Message Fauilure: %v", err)
 	}
 	log.Print("exit release session")
 

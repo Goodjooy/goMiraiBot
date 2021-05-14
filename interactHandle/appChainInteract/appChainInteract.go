@@ -14,7 +14,7 @@ import (
 type AppChainInteract struct {
 }
 
-func NewAppChainInteract() interact.ChainTypeInteract {
+func NewAppChainInteract() interact.FullSingleInteract {
 	return &AppChainInteract{}
 }
 func (*AppChainInteract) Init() {
@@ -27,18 +27,18 @@ func (xml *AppChainInteract) GetUseage() string {
 }
 
 //GetActivateTypes 获取激活的chain类型
-func (xml *AppChainInteract) GetActivateType() []constdata.MessageDataType {
-	return []constdata.MessageDataType{
-		constdata.App,
+func (xml *AppChainInteract) GetCommandName() []string {
+	return []string{
+		constdata.App.String(),
 	}
 }
 
 //GetActivateSource 获取激活的信息类型
-func (xml *AppChainInteract) GetActivateSource() []constdata.MessageType {
+func (xml *AppChainInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
 		constdata.GroupMessage,
-		constdata.FriendMessage,
-		constdata.TempMessage,
+		//constdata.FriendMessage,
+		//constdata.TempMessage,
 	}
 }
 

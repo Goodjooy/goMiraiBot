@@ -50,20 +50,20 @@ func LoadConfig(configPath string) Config {
 	var cfg Config
 	file, err := os.Open(path)
 	if err != nil {
-		log.Fatalf("Open Config File Falure: %v| (Using Default Config)", err)
+		log.Printf("Open Config File Falure: %v| (Using Default Config)", err)
 		return c
 	}
 	defer file.Close()
 
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatalf("Read Config File Falure: %v| (Using Default Config)", err)
+		log.Printf("Read Config File Falure: %v| (Using Default Config)", err)
 		return c
 	}
 
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
-		log.Fatalf("UnMarshal(json) Config File Falure: %v| (Using Default Config)", err)
+		log.Printf("UnMarshal(json) Config File Falure: %v| (Using Default Config)", err)
 		return c
 	}
 

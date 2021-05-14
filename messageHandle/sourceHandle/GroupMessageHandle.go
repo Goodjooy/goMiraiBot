@@ -44,10 +44,15 @@ func (handle GroupMessageSourceHandle) GetSource() constdata.MessageType {
 func (handle GroupMessageSourceHandle) GetMetaInformation() interface{} {
 	return handle.data
 }
-
-func GetGoupSoucreMessage(source MessageSource)(GroupMessage,error){
-	if source.GetSource()==constdata.GroupMessage{
-		return source.GetMetaInformation().(GroupMessage),nil
+func (handle GroupMessageSourceHandle) GetSenderID() uint64 {
+	return handle.data.UserId
+}
+func (handle GroupMessageSourceHandle) GetGroupID() uint64 {
+	return handle.data.GroupId
+}
+func GetGoupSoucreMessage(source MessageSource) (GroupMessage, error) {
+	if source.GetSource() == constdata.GroupMessage {
+		return source.GetMetaInformation().(GroupMessage), nil
 	}
-	return GroupMessage{},errors.New("Source Not From GroupMessage")
+	return GroupMessage{}, errors.New("source Not From GroupMessage")
 }

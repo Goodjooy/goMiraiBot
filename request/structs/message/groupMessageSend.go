@@ -22,6 +22,14 @@ type TempMessageRequest struct {
 	Clain []request.H `json:"messageChain"`
 }
 
+type FriendMessageRequest struct {
+	Session string `json:"sessionKey"`
+
+	QQ    uint64 `json:"target"`
+
+	Clain []request.H `json:"messageChain"`
+}
+
 type MessageSendRespond struct {
 	Code constdata.RespondStatus `json:"code"`
 

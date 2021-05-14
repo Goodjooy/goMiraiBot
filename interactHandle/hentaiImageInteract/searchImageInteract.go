@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type ContextInteract interact.ContextMessageInteract
+type ContextInteract interact.FullContextInteract
 
 type HentaiImageSearchInteract struct {
 	imageUrl   string
@@ -21,19 +21,20 @@ type HentaiImageSearchInteract struct {
 	userId  uint64
 }
 
-func NewHentaiImageSearchInteract() interact.ContextMessageInteract {
+func NewHentaiImageSearchInteract() interact.FullContextInteract {
 	return &HentaiImageSearchInteract{done: false, imageUrl: ""}
 }
 func (*HentaiImageSearchInteract) Init() {
 
 }
 
-func (HentaiImageSearchInteract) GetInitCommand() []string {
+func (HentaiImageSearchInteract) GetCommandName() []string {
 	return []string{"s-Img", "搜图"}
 }
 func (HentaiImageSearchInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
 		constdata.GroupMessage,
+		//constdata.FriendMessage,
 	}
 }
 

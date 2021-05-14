@@ -13,7 +13,7 @@ import (
 type AboutInteract struct {
 }
 
-func NewAboutInteract() interact.SingleMessageInteract {
+func NewAboutInteract() interact.FullSingleInteract {
 	return AboutInteract{}
 }
 func (AboutInteract) Init() {

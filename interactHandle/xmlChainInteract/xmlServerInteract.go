@@ -14,7 +14,7 @@ import (
 type XmlChainInteract struct {
 }
 
-func NewXmlChainInteract() interact.ChainTypeInteract {
+func NewXmlChainInteract() interact.FullSingleInteract {
 	return &XmlChainInteract{}
 }
 func (*XmlChainInteract) Init() {
@@ -27,18 +27,17 @@ func (xml *XmlChainInteract) GetUseage() string {
 }
 
 //GetActivateTypes 获取激活的chain类型
-func (xml *XmlChainInteract) GetActivateType() []constdata.MessageDataType {
-	return []constdata.MessageDataType{
-		constdata.Xml,
+func (xml *XmlChainInteract) GetCommandName() []string {
+	return []string{
+		constdata.Xml.String(),
 	}
 }
-
 //GetActivateSource 获取激活的信息类型
-func (xml *XmlChainInteract) GetActivateSource() []constdata.MessageType {
+func (xml *XmlChainInteract) RespondSource() []constdata.MessageType {
 	return []constdata.MessageType{
 		constdata.GroupMessage,
-		constdata.FriendMessage,
-		constdata.TempMessage,
+		//constdata.FriendMessage,
+		//constdata.TempMessage,
 	}
 }
 
@@ -50,7 +49,7 @@ func (xml *XmlChainInteract) EnterMessage(
 	var source, _ = sourceHandle.GetGoupSoucreMessage(data.Source)
 	xmlMessage, err := loadXML(data.ChainInfoList[0].Data["xml"].(string))
 	if err != nil {
-		log.Fatal("failure to Transform XML|", err)
+		log.Print("failure to Transform XML|", err)
 		repChan <- messagetargets.NewSingleTextGroupTarget(source.GroupId, fmt.Sprintf("failure to Transform XML|%v", err))
 	}
 

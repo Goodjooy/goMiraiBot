@@ -19,32 +19,32 @@ type WSHolder struct {
 	Conn *websocket.Conn
 }
 
-func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, session Session, conn *WSHolder, url url.URL) {
+func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, session Session, conn *WSHolder, url url.URL) bool {
 	var f message.MessageMapRespond
 	_, msgReader, err := msgSocket.NextReader()
 	if err != nil {
 		log.Print("Read Message | Get Message Failure: ", err)
 		//cnn, _ := TryReDialWebSocket(EstablishMessageHandleWebSocket, 6, session, url)
 		//conn.Conn = cnn
-		return
+		return false
 	}
 	var data []byte
 	data, err = ioutil.ReadAll(msgReader)
 	if err != nil {
 		log.Print("Read Message | Read Data From Reader Fauiure: ", err)
-		return
+		return true
 	}
 
 	err = json.Unmarshal(data, &f.Data)
 	if err != nil {
 		log.Print("Read Message | Unmarshal Json Failure", err)
-		return
+		return true
 	}
 
 	msg, err := structs.FromMessageRespondData(f)
 	if err != nil {
 		log.Print("Read Message | Struct Transfrom Error: ", err)
-		return
+		return true
 	}
 
 	log.Printf("Read Message | Accept Message Success! Source: \n%+v\n`%+v`",
@@ -52,9 +52,14 @@ func MessageReader(msgSocket *websocket.Conn, reqMsg chan structs.Message, sessi
 		chainRander(msg.ChainInfoList))
 	reqMsg <- msg
 
+	return true
 }
 
 func MessageSender(data messagetargets.MessageTarget, session Session) {
+	if data == nil {
+		return
+	}
+
 	log.Printf("Handle Message Send: %v", data.GetSendMessage())
 	var result message.MessageSendRespond
 	err := request.PostWithTargetRespond(string(data.GetTargetPort()), data.GetSendContain(string(session)), &result)
@@ -76,10 +81,12 @@ func MessageReaderHolder(done chan struct{},
 	url url.URL,
 	conn *WSHolder) {
 	//退出函数关闭阻塞挂起
-	defer close(done)
 
 	for {
-		MessageReader(msgSocket, reqMsg, session, conn, url)
+		ok := MessageReader(msgSocket, reqMsg, session, conn, url)
+		if !ok {
+			return
+		}
 	}
 }
 
