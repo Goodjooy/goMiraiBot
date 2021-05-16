@@ -1,12 +1,12 @@
 package inandoutinteract
 
 import (
-	"goMiraiQQBot/constdata"
-	datautil "goMiraiQQBot/dataUtil"
-	"goMiraiQQBot/database"
-	"goMiraiQQBot/messageHandle/interact"
-	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
-	"goMiraiQQBot/messageHandle/structs"
+	"goMiraiQQBot/lib/constdata"
+	datautil "goMiraiQQBot/lib/dataUtil"
+	"goMiraiQQBot/lib/database"
+	"goMiraiQQBot/lib/messageHandle/interact"
+	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
+	"goMiraiQQBot/lib/messageHandle/structs"
 
 	"gorm.io/gorm"
 )

@@ -1,8 +1,8 @@
 package inandoutinteract
 
 import (
-	"goMiraiQQBot/constdata"
-	"goMiraiQQBot/messageHandle/structs"
+	"goMiraiQQBot/lib/constdata"
+	"goMiraiQQBot/lib/messageHandle/structs"
 )
 
 type Status int

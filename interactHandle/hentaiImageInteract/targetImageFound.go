@@ -1,8 +1,8 @@
 package hentaiimageinteract
 
 import (
-	"goMiraiQQBot/constdata"
-	"goMiraiQQBot/messageHandle/structs"
+	"goMiraiQQBot/lib/constdata"
+	"goMiraiQQBot/lib/messageHandle/structs"
 )
 
 func foundTargeImage(chains []structs.MessageChainInfo) (string, bool) {

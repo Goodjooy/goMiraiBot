@@ -1,17 +1,18 @@
 package hentaiimageinteract
 
 import (
-	"goMiraiQQBot/constdata"
-	datautil "goMiraiQQBot/dataUtil"
-	"goMiraiQQBot/messageHandle/interact"
-	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
-	"goMiraiQQBot/messageHandle/sourceHandle"
-	"goMiraiQQBot/messageHandle/structs"
+	"goMiraiQQBot/lib/constdata"
+	datautil "goMiraiQQBot/lib/dataUtil"
+	"goMiraiQQBot/lib/messageHandle/interact"
+	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
+	"goMiraiQQBot/lib/messageHandle/sourceHandle"
+	"goMiraiQQBot/lib/messageHandle/structs"
 	"strconv"
 )
 
 type ContextInteract interact.FullContextInteract
 
+var countCmd=datautil.NewTargetValues("count", "长度", "数量")
 type HentaiImageSearchInteract struct {
 	imageUrl   string
 	sendNumber int
@@ -42,12 +43,14 @@ func (h *HentaiImageSearchInteract) InitMessage(
 	extraCmd datautil.MutliToOneMap,
 	data structs.Message,
 	redChan chan messagetargets.MessageTarget) interact.ContextInteract {
+	extraCmd.SetNoNameCmdOrder(countCmd)
+
 	var msg sourceHandle.GroupMessage = data.Source.GetMetaInformation().(sourceHandle.GroupMessage)
 	var res = messagetargets.NewChainsGroupTarget(msg.GroupId,
 		structs.NewTextChain("请发送一个图片以搜索 \n 发送 “取消” 以取消等待图片操作"))
 	redChan <- res
 
-	countS, _ := extraCmd.GetWithDefault("3", "count", "长度", "数量")
+	countS, _ := extraCmd.GetWithDefault("3", countCmd...)
 
 	count, err := strconv.Atoi(countS)
 	if err == nil {

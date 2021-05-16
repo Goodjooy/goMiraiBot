@@ -2,10 +2,10 @@ package hentaiimageinteract
 
 import (
 	"fmt"
-	"goMiraiQQBot/constdata"
-	messagetargets "goMiraiQQBot/messageHandle/messageTargets"
-	"goMiraiQQBot/messageHandle/structs"
-	"goMiraiQQBot/request"
+	"goMiraiQQBot/lib/constdata"
+	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
+	"goMiraiQQBot/lib/messageHandle/structs"
+	"goMiraiQQBot/lib/request"
 	"io/ioutil"
 	"log"
 	"net/http"

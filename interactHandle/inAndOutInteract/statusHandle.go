@@ -2,7 +2,7 @@ package inandoutinteract
 
 import (
 	"fmt"
-	"goMiraiQQBot/messageHandle/structs"
+	"goMiraiQQBot/lib/messageHandle/structs"
 	"regexp"
 	"strconv"
 	"time"

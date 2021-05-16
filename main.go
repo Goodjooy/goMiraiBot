@@ -2,13 +2,10 @@ package main
 
 import (
 	"flag"
-	"goMiraiQQBot/client"
-	"goMiraiQQBot/interactHandle"
-	appchaininteract "goMiraiQQBot/interactHandle/appChainInteract"
 	hentaiimageinteract "goMiraiQQBot/interactHandle/hentaiImageInteract"
 	inandoutinteract "goMiraiQQBot/interactHandle/inAndOutInteract"
-	xmlchaininteract "goMiraiQQBot/interactHandle/xmlChainInteract"
-	"goMiraiQQBot/messageHandle/interact"
+	"goMiraiQQBot/lib/client"
+	"goMiraiQQBot/lib/messageHandle/interact"
 	"log"
 	"os"
 	"os/signal"
@@ -29,14 +26,10 @@ func main() {
 	defer client.StopClient()
 	defer client.Close()
 
-	interact.MessageInteract.AddSingleConstruct(interactHandle.NewHelpInteract)
-	interact.MessageInteract.AddSingleConstruct(interactHandle.NewAboutInteract)
-
+	
+	
 	interact.MessageInteract.AddContextConstruct(hentaiimageinteract.NewHentaiImageSearchInteract)
 	interact.MessageInteract.AddContextConstruct(inandoutinteract.NewPaymentRecordInteract)
-
-	interact.ChainInteract.AddSingleConstruct(xmlchaininteract.NewXmlChainInteract)
-	interact.ChainInteract.AddSingleConstruct(appchaininteract.NewAppChainInteract)
 
 	//load message
 	client.EnableDB()
