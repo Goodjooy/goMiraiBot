@@ -4,6 +4,7 @@ import (
 	"goMiraiQQBot/lib/client"
 	"goMiraiQQBot/lib/constdata"
 	datautil "goMiraiQQBot/lib/dataUtil"
+	"goMiraiQQBot/lib/database"
 	interactprefab "goMiraiQQBot/lib/interactPrefab"
 	"goMiraiQQBot/lib/messageHandle/interact"
 	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
@@ -33,6 +34,8 @@ func NewSetuInteract() interact.FullSingleInteract {
 		AddActivateSource(constdata.GroupMessage).
 		AddActivateSource(constdata.FriendMessage).
 		AddInitFn(func() {
+			database.AsignDBModel(&setuInfo{})
+
 			setuCfg, ok := client.GetExtraConfig("setu")
 			if !ok {
 				apiKey = ""
@@ -73,9 +76,12 @@ func (setu *SetuInteract) EnterMessage(
 	if err != nil {
 		thumbnailC = true
 	}
-
+	r18:=0
+	if data.Source.GetSource()==constdata.FriendMessage{
+		r18=2
+	}
 	randomSetu(
-		false,
+		uint(r18),
 		uint(setuC),
 		thumbnailC,
 		data.Source,

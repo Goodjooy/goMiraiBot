@@ -24,6 +24,9 @@ func CommandGet(msgChain []structs.MessageChainInfo, botQQ uint64) (Command, boo
 	//以#开头,有命令
 	if strings.HasPrefix(msg, "#") {
 		matchResult := cmdPattern.FindStringSubmatch(msg)
+		if matchResult == nil {
+			return cmd, false
+		}
 		cmd.mainCmd = strings.ToLower(matchResult[2])
 
 		extraCmd := msg[len(matchResult[1]):]

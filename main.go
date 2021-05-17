@@ -5,6 +5,7 @@ import (
 	hentaiimageinteract "goMiraiQQBot/interactHandle/hentaiImageInteract"
 	inandoutinteract "goMiraiQQBot/interactHandle/inAndOutInteract"
 	randomsetuinteract "goMiraiQQBot/interactHandle/randomSetuInteract"
+	todaynewsinteractgo "goMiraiQQBot/interactHandle/todayNewsInteract.go"
 	"goMiraiQQBot/lib/client"
 	"goMiraiQQBot/lib/messageHandle/interact"
 	"log"
@@ -28,7 +29,7 @@ func main() {
 	defer client.Close()
 
 	interact.MessageInteract.AddSingleConstruct(randomsetuinteract.NewSetuInteract)
-	
+	interact.MessageInteract.AddSingleConstruct(todaynewsinteractgo.NewTodyNewsInteract)
 	interact.MessageInteract.AddContextConstruct(hentaiimageinteract.NewHentaiImageSearchInteract)
 	interact.MessageInteract.AddContextConstruct(inandoutinteract.NewPaymentRecordInteract)
 

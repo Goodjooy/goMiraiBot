@@ -14,7 +14,7 @@ import (
 )
 
 func randomSetu(
-	r18 bool,
+	r18 uint,
 	num uint,
 	thumbnail bool,
 	source sourceHandle.MessageSource,
@@ -23,7 +23,7 @@ func randomSetu(
 	values := url.Values{}
 
 	values.Add("apikey", apiKey)
-	values.Add("r18", strconv.FormatBool(r18))
+	values.Add("r18", strconv.FormatUint(uint64(r18), 10))
 	values.Add("num", strconv.FormatUint(uint64(num), 10))
 	values.Add("size1200", strconv.FormatBool(thumbnail))
 

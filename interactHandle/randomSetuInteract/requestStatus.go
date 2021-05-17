@@ -1,5 +1,7 @@
 package randomsetuinteract
 
+import "gorm.io/gorm"
+
 type setuRes struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
@@ -25,8 +27,15 @@ type setuMeta struct {
 
 	R18 bool `json:"r18"`
 
-	Width uint16 `json:"width"`
+	Width  uint16 `json:"width"`
 	Height uint16 `json:"height"`
 
 	Tags []string `json:"tags"`
+}
+
+type setuInfo struct {
+	gorm.Model
+
+	URL string `gorm:"size:512"`
+	R18 bool 
 }
