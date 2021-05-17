@@ -46,13 +46,12 @@ func NewQQBotClient(configPath string) BotWsClient {
 
 	config := LoadConfig(configPath)
 	client.config = config
-
+	cfg = config
 	interact.SetCFG(config)
 
 	interact.MessageInteract.AddSingleConstruct(interactHandle.NewHelpInteract)
 	interact.MessageInteract.AddSingleConstruct(interactHandle.NewAboutInteract)
 
-	
 	interact.ChainInteract.AddSingleConstruct(xmlchaininteract.NewXmlChainInteract)
 	interact.ChainInteract.AddSingleConstruct(appchaininteract.NewAppChainInteract)
 

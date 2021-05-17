@@ -9,10 +9,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var cfg Config
+
+func GetExtraConfig(key string) (interface{}, bool) {
+	i, ok := cfg.ExtraConfig[key]
+
+	return i, ok
+}
+
 type Config struct {
 	Server   Server   `yaml:"server"`
 	Bot      Bot      `yaml:"bot"`
 	Database Database `yaml:"database"`
+
+	ExtraConfig map[string]interface{} `yaml:"extraConfig"`
 }
 
 func (cfg Config) GetQQId() uint64 {

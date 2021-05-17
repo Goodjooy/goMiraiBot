@@ -42,6 +42,19 @@ redis:
   # 启用redis
   enable: false
 
+# 机器人的功能的额外配置
+extraConfig:
+  #随机涩图配置 https://api.lolicon.app
+  setu:
+    url: https://api.lolicon.app/setu/
+    apiKey: 1141451919
+  #每日60s看世界
+  daily:
+    url: http://dwz.2xb.cn/zaob
+  #明日方舟蹲饼配置
+  arknights-dun:
+    data: data
+
 ```  
 
 * 使用 `go run .`直接运行 或者 `go build .` 编译后运行 `./main`
@@ -50,11 +63,16 @@ redis:
 
 **目前仍然在开发中，不稳定**  
 
-### 单次交互
+### 命令交互
 
 1. #help 显示帮助信息
 2. #about 显示关于
+3. #setu 随机涩图
+4. #s-img 图片以图搜图服务
+5. #记账 记账
 
-### 上下文交互
+### 消息类型交互
+* XML
+* APP
 
-1. #s-img 图片以图搜图服务
+### 事件交互
