@@ -2,6 +2,7 @@ package todaynewsinteractgo
 
 import (
 	"encoding/json"
+	"goMiraiQQBot/lib/client"
 	"goMiraiQQBot/lib/constdata"
 	datautil "goMiraiQQBot/lib/dataUtil"
 	interactprefab "goMiraiQQBot/lib/interactPrefab"
@@ -12,15 +13,20 @@ import (
 	"log"
 	"net/http"
 )
+
+type dailyConfig struct {
+	URL string `config:"url"`
+}
+
 type dailyMessage struct {
-	Code uint `json:"code"`
+	Code    uint   `json:"code"`
 	Message string `json:"msg"`
 
 	ImageURL string `json:"imageUrl"`
 }
 
+var targetURL string = "http://dwz.2xb.cn/zaob"
 
-var targetURL string ="http://dwz.2xb.cn/zaob"
 type TodayNewsInteract struct {
 	interactprefab.InteractPerfab
 }
@@ -32,7 +38,11 @@ func NewTodyNewsInteract() interact.FullSingleInteract {
 			AddActivateSource(constdata.GroupMessage).
 			SetUseage("60秒看世界").
 			AddInitFn(func() {
-
+				var cfg dailyConfig
+				ok := client.ParseExtraConfigToTarget("daily", &cfg)
+				if ok {
+					targetURL = cfg.URL
+				}
 			}).
 			Build(),
 	}
@@ -43,28 +53,28 @@ func (tn *TodayNewsInteract) EnterMessage(
 	data structs.Message,
 	repChan chan messagetargets.MessageTarget) {
 
-	res,err:=http.Get(targetURL)
+	res, err := http.Get(targetURL)
 	//request error
 	if err != nil {
-		log.Printf("Get Daliy Image Url Failure: %v",err)
+		log.Printf("Get Daliy Image Url Failure: %v", err)
 		return
 	}
 	//read request body error
-	resData ,err:=ioutil.ReadAll(res.Body)
+	resData, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("Read Respond Body Error: %v",err)
+		log.Printf("Read Respond Body Error: %v", err)
 		return
 	}
 
 	//unmarsal to Json
 	var dailyInfo dailyMessage
-	err=json.Unmarshal(resData,&dailyInfo)
+	err = json.Unmarshal(resData, &dailyInfo)
 	if err != nil {
-		log.Printf("Unmarshal to Json Error : %v",err)
+		log.Printf("Unmarshal to Json Error : %v", err)
 		return
 	}
 
-	repChan<-messagetargets.SourceTarget(
+	repChan <- messagetargets.SourceTarget(
 		data.Source,
 		structs.NewImageChain(dailyInfo.ImageURL),
 	)

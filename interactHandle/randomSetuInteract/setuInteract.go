@@ -15,11 +15,18 @@ import (
 var apiKey string
 var targetURL string
 
+const defaultURL = "https://api.lolicon.app/setu/"
+
 var (
 	setuCount     = datautil.NewTargetValues("count", "数量")
 	setuR18       = datautil.NewTargetValues("r18", "R18")
 	setuThumbnail = datautil.NewTargetValues("thumbnail", "缩略图")
 )
+
+type setuConfig struct {
+	ApiKey    string `config:"apiKey"`
+	TargetUrl string `config:"url"`
+}
 
 type SetuInteract struct {
 	interactprefab.InteractPerfab
@@ -36,23 +43,14 @@ func NewSetuInteract() interact.FullSingleInteract {
 		AddInitFn(func() {
 			database.AsignDBModel(&setuInfo{})
 
-			setuCfg, ok := client.GetExtraConfig("setu")
-			if !ok {
-				apiKey = ""
-				targetURL = "https://api.lolicon.app/setu/"
-			} else {
-				setu := setuCfg.(map[interface{}]interface{})
-				if key, ok := setu["apiKey"]; ok {
-					apiKey = key.(string)
-				} else {
-					apiKey = ""
-				}
-				if key, ok := setu["url"]; ok {
-					targetURL = key.(string)
-				} else {
-					targetURL = "https://api.lolicon.app/setu/"
-				}
+			var cfg setuConfig
+			ok := client.ParseExtraConfigToTarget("setu", &cfg)
+
+			if ok {
+				apiKey = cfg.ApiKey
+				targetURL = cfg.TargetUrl
 			}
+
 		}).
 		SetUseage(`随机涩图功能，每日额度300`).
 		BuildPtr()
@@ -76,9 +74,9 @@ func (setu *SetuInteract) EnterMessage(
 	if err != nil {
 		thumbnailC = true
 	}
-	r18:=0
-	if data.Source.GetSource()==constdata.FriendMessage{
-		r18=2
+	r18 := 0
+	if data.Source.GetSource() == constdata.FriendMessage {
+		r18 = 2
 	}
 	randomSetu(
 		uint(r18),
