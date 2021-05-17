@@ -4,6 +4,7 @@ import (
 	"goMiraiQQBot/lib/constdata"
 	datautil "goMiraiQQBot/lib/dataUtil"
 	"goMiraiQQBot/lib/database"
+	interactprefab "goMiraiQQBot/lib/interactPrefab"
 	"goMiraiQQBot/lib/messageHandle/interact"
 	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
 	"goMiraiQQBot/lib/messageHandle/structs"
@@ -14,6 +15,8 @@ import (
 var botQQ uint64
 
 type PaymentRecordInteract struct {
+	interactprefab.InteractPerfab
+
 	user User
 	db   *gorm.DB
 
@@ -21,32 +24,19 @@ type PaymentRecordInteract struct {
 }
 
 func NewPaymentRecordInteract() interact.FullContextInteract {
-	return &PaymentRecordInteract{}
-}
 
-func (i *PaymentRecordInteract) Init() {
-	database.AsignDBModel(&PaymentRecord{}, &User{})
-	botQQ = interact.GetBotQQ()
-}
-
-//GetUseage 获取命令使用方法
-func (i *PaymentRecordInteract) GetUseage() string {
-	return `#记账 - 上下文类型命令交互
-		在之后可进行多种指令操作`
-}
-
-//GetInitCommand
-func (i *PaymentRecordInteract) GetCommandName() []string {
-	return []string{
-		"记账", "payment-record",
-	}
-}
-
-//RespondSource
-func (i *PaymentRecordInteract) RespondSource() []constdata.MessageType {
-	return []constdata.MessageType{
-		constdata.GroupMessage,
-		constdata.FriendMessage,
+	return &PaymentRecordInteract{
+		InteractPerfab: interactprefab.NewInteractPerfab().
+			AddActivateSigns("记账", "账单").
+			AddActivateSigns("payment-record").
+			SetUseage(`#记账 - 上下文类型命令交互
+		在之后可进行多种指令操作`).
+			AddActivateSource(constdata.GroupMessage, constdata.FriendMessage).
+			AddInitFn(func() {
+				database.AsignDBModel(&PaymentRecord{}, &User{})
+				botQQ = interact.GetBotQQ()
+			}).
+			Build(),
 	}
 }
 

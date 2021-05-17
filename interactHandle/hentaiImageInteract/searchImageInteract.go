@@ -3,6 +3,7 @@ package hentaiimageinteract
 import (
 	"goMiraiQQBot/lib/constdata"
 	datautil "goMiraiQQBot/lib/dataUtil"
+	interactprefab "goMiraiQQBot/lib/interactPrefab"
 	"goMiraiQQBot/lib/messageHandle/interact"
 	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
 	"goMiraiQQBot/lib/messageHandle/sourceHandle"
@@ -12,8 +13,11 @@ import (
 
 type ContextInteract interact.FullContextInteract
 
-var countCmd=datautil.NewTargetValues("count", "长度", "数量")
+var countCmd = datautil.NewTargetValues("count", "长度", "数量")
+
 type HentaiImageSearchInteract struct {
+	*interactprefab.InteractPerfab
+
 	imageUrl   string
 	sendNumber int
 	done       bool
@@ -23,19 +27,21 @@ type HentaiImageSearchInteract struct {
 }
 
 func NewHentaiImageSearchInteract() interact.FullContextInteract {
-	return &HentaiImageSearchInteract{done: false, imageUrl: ""}
-}
-func (*HentaiImageSearchInteract) Init() {
+	perfab := interactprefab.NewInteractPerfab().
+		AddActivateSigns("搜图", "以图搜图").
+		AddActivateSigns("serachImage").
+		AddActivateSource(constdata.GroupMessage).
+		AddInitFn(func() {}).
+		SetUseage(
+	`#s-Img|#搜图 ： 通过给定图片进行相似图片查询
+	额外指令：
+		count|长度|数量=[大于0的整数] -> 发送的搜索结果数量，如果大于结果或者小于0就发送全部结果，默认：3`).
+		BuildPtr()
 
-}
-
-func (HentaiImageSearchInteract) GetCommandName() []string {
-	return []string{"s-Img", "搜图"}
-}
-func (HentaiImageSearchInteract) RespondSource() []constdata.MessageType {
-	return []constdata.MessageType{
-		constdata.GroupMessage,
-		//constdata.FriendMessage,
+	return &HentaiImageSearchInteract{
+		done:           false,
+		imageUrl:       "",
+		InteractPerfab: perfab,
 	}
 }
 
@@ -90,10 +96,4 @@ func (h *HentaiImageSearchInteract) NextMessage(
 
 func (h *HentaiImageSearchInteract) IsDone() bool {
 	return h.done
-}
-
-func (h *HentaiImageSearchInteract) GetUseage() string {
-	return `#s-Img|#搜图 ： 通过给定图片进行相似图片查询
-	额外指令：
-		count|长度|数量=[大于0的整数] -> 发送的搜索结果数量，如果大于结果或者小于0就发送全部结果，默认：3`
 }
