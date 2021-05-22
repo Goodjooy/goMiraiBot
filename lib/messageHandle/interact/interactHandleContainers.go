@@ -11,7 +11,7 @@ type GroupMemberContext map[uint64]ContextInteract
 
 
 
-type contextFetchMap struct {
+type ContextFetchMap struct {
 	//数据
 	contextData     map[uuid.UUID]ContextInteract
 	groupMenberData map[uint64]map[uint64]uuid.UUID
@@ -19,8 +19,8 @@ type contextFetchMap struct {
 	//互斥锁
 	mutex sync.RWMutex
 }
-func newContextFetchMap()contextFetchMap{
-	return contextFetchMap{
+func NewContextFetchMap()ContextFetchMap{
+	return ContextFetchMap{
 		contextData: make(map[uuid.UUID]ContextInteract),
 		groupMenberData: make(map[uint64]map[uint64]uuid.UUID),
 		mutex: sync.RWMutex{},
@@ -30,7 +30,7 @@ func newContextFetchMap()contextFetchMap{
 //Put put add new ContextInteract into target group and menber area, <br>
 //if target area has not done Context will returen an error  <br>
 //while adding Context will lock by mutex  <br>
-func (c *contextFetchMap) Put(groupId, menberId uint64, context ContextInteract) error {
+func (c *ContextFetchMap) Put(groupId, menberId uint64, context ContextInteract) error {
 	oldContext, err := c.Get(groupId, menberId)
 	if err == nil {
 		if !oldContext.IsDone() {
@@ -61,7 +61,7 @@ func (c *contextFetchMap) Put(groupId, menberId uint64, context ContextInteract)
 //Get get get target context in provid group for the menber
 //if context not found, will returen an error
 //wihle get it will enable READ LOCK
-func (c *contextFetchMap) Get(groupId, menberId uint64) (ContextInteract, error) {
+func (c *ContextFetchMap) Get(groupId, menberId uint64) (ContextInteract, error) {
 
 	contextUUID, err := c.getContextUUID(groupId, menberId)
 	if err != nil {
@@ -81,7 +81,7 @@ func (c *contextFetchMap) Get(groupId, menberId uint64) (ContextInteract, error)
 
 //Delete delete target Context no matter The Target Context is DONE or not
 // while Delete, it will enable LOCK
-func (c *contextFetchMap) Delete(groupId, menberId uint64) error {
+func (c *ContextFetchMap) Delete(groupId, menberId uint64) error {
 	contextUUID, err := c.getContextUUID(groupId, menberId)
 	if err != nil {
 		return fmt.Errorf("Get Context UUID Error: %v", err)
@@ -93,7 +93,7 @@ func (c *contextFetchMap) Delete(groupId, menberId uint64) error {
 	return nil
 }
 
-func (c *contextFetchMap) getContextUUID(groupId, menberId uint64) (uuid.UUID, error) {
+func (c *ContextFetchMap) getContextUUID(groupId, menberId uint64) (uuid.UUID, error) {
 	defer c.mutex.Unlock()
 	c.mutex.Lock()
 
@@ -109,7 +109,7 @@ func (c *contextFetchMap) getContextUUID(groupId, menberId uint64) (uuid.UUID, e
 }
 
 //活跃的信息注册
-var activateContextInteract contextFetchMap = newContextFetchMap()
+var activateContextInteract ContextFetchMap = NewContextFetchMap()
 
 //构造容器
 var MessageInteract ConstructMap=NewContructMap()

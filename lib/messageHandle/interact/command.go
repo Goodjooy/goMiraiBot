@@ -18,6 +18,19 @@ type Command struct {
 	extraCmd datautil.MutliToOneMap
 }
 
+func (c *Command)GetExtraCmd()datautil.MutliToOneMap{
+	return c.extraCmd
+}
+
+func NewCommandBaseInteractGroup()InteractController{
+	return NewInteractContorller(
+		1,
+		func(m structs.Message) (Command, bool) {
+			return CommandGet(m.ChainInfoList,cfg.GetQQId())
+		})
+}
+
+
 func CommandGet(msgChain []structs.MessageChainInfo, botQQ uint64) (Command, bool) {
 	cmd := Command{}
 	msg := commandLoad(msgChain, botQQ)

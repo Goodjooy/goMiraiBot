@@ -15,6 +15,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type MessageChan struct{
+	inputMsg chan structs.Message
+	outputMsg chan messagetargets.MessageTarget
+}
+
 type WSHolder struct {
 	Conn *websocket.Conn
 }

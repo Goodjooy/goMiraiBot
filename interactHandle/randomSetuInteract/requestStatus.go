@@ -16,7 +16,7 @@ type setuRes struct {
 
 type setuMeta struct {
 	Pid    uint64 `json:"pid"`
-	picNum uint   `json:"p"`
+	PicNum uint   `json:"p"`
 
 	AuthorId uint64 `json:"uid"`
 

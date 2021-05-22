@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 	"goMiraiQQBot/lib/database"
-	"goMiraiQQBot/lib/interactHandle"
+	ih "goMiraiQQBot/lib/interactHandle"
 	appchaininteract "goMiraiQQBot/lib/interactHandle/appChainInteract"
 	xmlchaininteract "goMiraiQQBot/lib/interactHandle/xmlChainInteract"
 	"goMiraiQQBot/lib/messageHandle/interact"
@@ -29,19 +29,31 @@ type BotWsClient struct {
 
 	Done chan struct{}
 
-	msgGetChan chan mStruct.Message
-	msgReq     chan messagetargets.MessageTarget
+	msgChan MessageChan
+
+	interactHandle interactHandler
 
 	config Config
 
 	database *gorm.DB
+
+	CmdBaseInteract interact.InteractController
+	ChainInteract interact.InteractController
 }
 
 func NewQQBotClient(configPath string) BotWsClient {
 	client := BotWsClient{
 		Done:       make(chan struct{}),
-		msgGetChan: make(chan mStruct.Message),
-		msgReq:     make(chan messagetargets.MessageTarget),
+		msgChan: MessageChan{
+			inputMsg: make(chan mStruct.Message),
+			outputMsg: make(chan messagetargets.MessageTarget),
+		},
+		interactHandle: interactHandler{
+			activityContext: interact.NewContextFetchMap(),
+			interactControllers: make(map[int32]interact.InteractController),
+		},
+		CmdBaseInteract: interact.NewCommandBaseInteractGroup(),
+		ChainInteract: interact.ChainBaseInteractController(),
 	}
 
 	config := LoadConfig(configPath)
@@ -49,8 +61,8 @@ func NewQQBotClient(configPath string) BotWsClient {
 	cfg = config
 	interact.SetCFG(config)
 
-	interact.MessageInteract.AddSingleConstruct(interactHandle.NewHelpInteract)
-	interact.MessageInteract.AddSingleConstruct(interactHandle.NewAboutInteract)
+	client.CmdBaseInteract.AddSingleInteractConstruct(ih.NewHelpInteract)
+	interact.MessageInteract.AddSingleConstruct(ih.NewAboutInteract)
 
 	interact.ChainInteract.AddSingleConstruct(xmlchaininteract.NewXmlChainInteract)
 	interact.ChainInteract.AddSingleConstruct(appchaininteract.NewAppChainInteract)
@@ -71,7 +83,7 @@ func (client *BotWsClient) Run() error {
 	log.Print("Souce Handle Init Success!")
 
 	log.Print("Init Interact Handle")
-	interact.InitInteractHandle(client.msgGetChan, client.msgReq)
+	interact.InitInteractHandle(client.msgChan.inputMsg, client.msgChan.outputMsg)
 	log.Print("Interact Handle Init Success")
 
 	session, err := AuthQQKey(config)
@@ -97,15 +109,15 @@ func (client *BotWsClient) Run() error {
 	}
 
 	log.Print("Start Listen Bot Message")
-	go MessageReaderHolder(client.Done, client.msgGetChan, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
-	go MessageReaderHolder(client.Done, client.msgGetChan, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
+	go MessageReaderHolder(client.Done, client.msgChan.inputMsg, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
+	go MessageReaderHolder(client.Done, client.msgChan.inputMsg, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
 	log.Print("Bot Message Listener Started!")
 
 	//TODO: Event Handle
 
 	log.Print("Strat Lisen Message Send Channal")
-	go MessageSenderHolder(client.Done, client.msgReq, client.session)
-	go MessageSenderHolder(client.Done, client.msgReq, client.session)
+	go MessageSenderHolder(client.Done, client.msgChan.outputMsg, client.session)
+	go MessageSenderHolder(client.Done, client.msgChan.outputMsg, client.session)
 	log.Print("Bot Message Send Channal Litener Started")
 
 	return nil
@@ -121,8 +133,8 @@ func (client *BotWsClient) GetDoneChan() chan struct{} {
 }
 
 func (client *BotWsClient) StopClient() {
-	close(client.msgGetChan)
-	close(client.msgReq)
+	close(client.msgChan.inputMsg)
+	close(client.msgChan.outputMsg)
 	close(client.Done)
 
 	log.Print("Release Session")

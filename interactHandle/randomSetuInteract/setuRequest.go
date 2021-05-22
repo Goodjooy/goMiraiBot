@@ -75,7 +75,7 @@ func randomSetu(
 
 	for _, v := range setuData.Setus {
 		setuInfo := fmt.Sprintf("作品ID:%v\n图片序列：%v\n作者：%v",
-			v.Pid, v.picNum, v.Author)
+			v.Pid, v.PicNum, v.Author)
 
 		msgRepChan <- messagetargets.SourceTarget(source,
 			structs.NewTextChain(setuInfo),
