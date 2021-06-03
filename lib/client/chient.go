@@ -31,8 +31,6 @@ type BotWsClient struct {
 
 	msgChan MessageChan
 
-	interactHandle interactHandler
-
 	config Config
 
 	database *gorm.DB
@@ -48,10 +46,7 @@ func NewQQBotClient(configPath string) BotWsClient {
 			inputMsg: make(chan mStruct.Message),
 			outputMsg: make(chan messagetargets.MessageTarget),
 		},
-		interactHandle: interactHandler{
-			activityContext: interact.NewContextFetchMap(),
-			interactControllers: make(map[int32]interact.InteractController),
-		},
+		
 		CmdBaseInteract: interact.NewCommandBaseInteractGroup(),
 		ChainInteract: interact.ChainBaseInteractController(),
 	}
@@ -61,7 +56,9 @@ func NewQQBotClient(configPath string) BotWsClient {
 	cfg = config
 	interact.SetCFG(config)
 
-	client.CmdBaseInteract.AddSingleInteractConstruct(ih.NewHelpInteract)
+	//TODO: 控制内置
+	//client.CmdBaseInteract.AddSingleInteractConstruct(ih.NewHelpInteract)
+	interact.MessageInteract.AddSingleConstruct(ih.NewHelpInteract)
 	interact.MessageInteract.AddSingleConstruct(ih.NewAboutInteract)
 
 	interact.ChainInteract.AddSingleConstruct(xmlchaininteract.NewXmlChainInteract)
@@ -109,7 +106,6 @@ func (client *BotWsClient) Run() error {
 	}
 
 	log.Print("Start Listen Bot Message")
-	go MessageReaderHolder(client.Done, client.msgChan.inputMsg, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
 	go MessageReaderHolder(client.Done, client.msgChan.inputMsg, client.session, client.msgSocket, client.rootURL, &WSHolder{Conn: client.msgSocket})
 	log.Print("Bot Message Listener Started!")
 

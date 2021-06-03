@@ -108,6 +108,7 @@ func (c *ContextFetchMap) getContextUUID(groupId, menberId uint64) (uuid.UUID, e
 	return contextUUID, nil
 }
 
+var handler interactHandler;
 //活跃的信息注册
 var activateContextInteract ContextFetchMap = NewContextFetchMap()
 

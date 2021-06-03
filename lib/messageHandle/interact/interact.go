@@ -1,28 +1,85 @@
 package interact
 
 import (
-	datautil "goMiraiQQBot/lib/dataUtil"
 	messagetargets "goMiraiQQBot/lib/messageHandle/messageTargets"
 	"goMiraiQQBot/lib/messageHandle/structs"
+	"log"
 )
 
-type Interact interface {
-	Init()
-	// EnterMessage 响应信息
-	EnterMessage(extraCmd datautil.MutliToOneMap, data structs.Message, repChan chan messagetargets.MessageTarget)
+/// interactHandler 管理全部的交互事件
+type interactHandler struct {
+	//全局上下文控制器
+	activityContext ContextFetchMap
+
+	//优先级列表
+	prioityOrder []int32
+	//管理具体控制器
+	interactControllers map[int32]InteractController
+
+	lock bool
+
+	//信息流
+	inputMsg chan structs.Message
+	outputMsg chan messagetargets.MessageTarget
+}
+func (handle *interactHandler) DoLoadCmd(msg structs.Message) (
+	Command,
+	InteractController) {
+	var cmd Command
+	var controller InteractController
+	for _, v := range handle.prioityOrder {
+		controller, ok := handle.interactControllers[v]
+		if ok {
+			cmd, ok = controller.DoAnalyse(msg)
+			if ok {
+				return cmd, controller
+			}
+		}
+	}
+	return cmd, controller
+}
+func (handle *interactHandler) DoInteract(
+	cmd Command,
+	msg structs.Message,
+	controller InteractController,
+) bool {
+	if interact, ok := controller.GetContextInteract(cmd, msg.Source); ok {
+		context := interact.InitMessage(cmd.GetExtraCmd(), msg, handle.outputMsg)
+
+		err := handle.activityContext.
+			Put(msg.Source.GetGroupID(),
+				msg.Source.GetSenderID(),
+				context)
+
+		if err != nil {
+			log.Printf("Add New Context Failure : %v", err)
+			handle.outputMsg <- messagetargets.SourceTarget(
+				msg.Source,
+				structs.NewTextChain("新建上下文失败"),
+			)
+		}
+	} else if interact, ok := controller.GetSingleInteract(cmd, msg.Source); ok {
+		interact.EnterMessage(
+			cmd.GetExtraCmd(),
+			msg,
+			handle.outputMsg,
+		)
+	} else {
+		return false
+	}
+	return true
 }
 
-type ContextInteract interface {
-	Init()
-	/*InitMessage 	
-		上下文交互创建时使用,初始化数据，响应消息
-		要求根据传递的数据将不完全初始化的响应器初始化完成
-		并做出响应（可选）
-	*/
-	InitMessage(extraCmd datautil.MutliToOneMap, msg structs.Message, redChan chan messagetargets.MessageTarget) ContextInteract
-	//NextMessage 向上下文提交信息
-	NextMessage(msg structs.Message, redChan chan messagetargets.MessageTarget)
+func (handle *interactHandler) DoContextAlive(
+	msg structs.Message,
+) bool {
+	if context, err := handle.activityContext.Get(msg.Source.GetGroupID(), msg.Source.GetSenderID()); err == nil {
+		context.NextMessage(msg, handle.outputMsg)
 
-	//IsDone 判断该上下文是否已经完成
-	IsDone() bool
+		if context.IsDone() {
+			handle.activityContext.Delete(msg.Source.GetGroupID(), msg.Source.GetSenderID())
+		}
+		return true
+	}
+	return false
 }

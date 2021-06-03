@@ -39,7 +39,7 @@ func NewSetuInteract() interact.FullSingleInteract {
 		AddActivateSigns("随机涩图").
 		AddActivateSigns("涩图").
 		AddActivateSource(constdata.GroupMessage).
-		AddActivateSource(constdata.FriendMessage).
+		//AddActivateSource(constdata.FriendMessage).
 		AddInitFn(func() {
 			database.AsignDBModel(&setuInfo{})
 

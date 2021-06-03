@@ -18,18 +18,17 @@ type Command struct {
 	extraCmd datautil.MutliToOneMap
 }
 
-func (c *Command)GetExtraCmd()datautil.MutliToOneMap{
+func (c *Command) GetExtraCmd() datautil.MutliToOneMap {
 	return c.extraCmd
 }
 
-func NewCommandBaseInteractGroup()InteractController{
+func NewCommandBaseInteractGroup() InteractController {
 	return NewInteractContorller(
 		1,
 		func(m structs.Message) (Command, bool) {
-			return CommandGet(m.ChainInfoList,cfg.GetQQId())
+			return CommandGet(m.ChainInfoList, cfg.GetQQId())
 		})
 }
-
 
 func CommandGet(msgChain []structs.MessageChainInfo, botQQ uint64) (Command, bool) {
 	cmd := Command{}
@@ -37,7 +36,7 @@ func CommandGet(msgChain []structs.MessageChainInfo, botQQ uint64) (Command, boo
 	//以#开头,有命令
 	if strings.HasPrefix(msg, "#") {
 		matchResult := cmdPattern.FindStringSubmatch(msg)
-		if matchResult == nil {
+		if matchResult == nil || len(matchResult) < 3 {
 			return cmd, false
 		}
 		cmd.mainCmd = strings.ToLower(matchResult[2])

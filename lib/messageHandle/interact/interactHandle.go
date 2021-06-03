@@ -17,6 +17,11 @@ func SetCFG(c BotQQIdGeter){
 
 func InitInteractHandle(msgChan chan structs.Message, msgRes chan messagetargets.MessageTarget) {
 
+	handler=interactHandler{
+		activityContext: NewContextFetchMap(),
+		
+	}
+
 	MessageInteract.setLock()
 	ChainInteract.setLock()
 	//register interacter
