@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"goMiraiQQBot/interactHandle/billi/upfans"
 	hentaiimageinteract "goMiraiQQBot/interactHandle/hentaiImageInteract"
 	inandoutinteract "goMiraiQQBot/interactHandle/inAndOutInteract"
 	randomsetuinteract "goMiraiQQBot/interactHandle/randomSetuInteract"
@@ -30,6 +31,8 @@ func main() {
 
 	interact.MessageInteract.AddSingleConstruct(randomsetuinteract.NewSetuInteract)
 	interact.MessageInteract.AddSingleConstruct(todaynewsinteractgo.NewTodyNewsInteract)
+	interact.MessageInteract.AddSingleConstruct(upfans.NewUpFansInteract)
+
 	interact.MessageInteract.AddContextConstruct(hentaiimageinteract.NewHentaiImageSearchInteract)
 	interact.MessageInteract.AddContextConstruct(inandoutinteract.NewPaymentRecordInteract)
 
